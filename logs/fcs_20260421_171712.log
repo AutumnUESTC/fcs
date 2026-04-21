@@ -1,0 +1,202 @@
+2026-04-21 17:17:12,646 [fcs.server] 法律多智能体系统服务启动
+2026-04-21 17:18:40,012 [fcs.server] [session:57694a53-fb05-42e6-9d12-daa068b8a6bc] 收到分析请求: 我要打官司...
+2026-04-21 17:18:40,026 [agents.main_graph] [orchestrator] 开始意图分析
+2026-04-21 17:18:41,677 [agents.planner] [planner:orchestrator] LLM 迭代 1/5
+2026-04-21 17:18:41,677 [agents.planner] [planner:orchestrator] LLM 请求(迭代1), 消息数=2
+2026-04-21 17:18:41,677 [agents.planner] [planner:orchestrator] LLM消息[0] role=system: 你是法律意图分析规划师。你的任务是：
+1. 分析用户的情绪状态，了解用户的心理状态
+2. 如果用户上传了文件，先读取文件内容
+3. 分析用户的法律诉求，判断意图类型
+4. 查询相关法律知识，了解该类案件需要的关键信息
+5. 分析用户已提供的信息是否完整
+6. 信息完整后，将诉求拆解为可执行的子任务列表
+可用工具：analyze_emotion, classify_intent, decompose_tasks, use_file_reader, use_legal_query, analyze_info_completeness
+请依次调用工具完成分析。第一步务必调用 analyze_emotion 分析用户情绪。
+
+## 追问规则（非常重要）
+在调用 analyze_info_completeness 之后，必须判断信息是否完整。
+以下情况必须使用 need_info 动作向用户追问：
+- 用户只说了模糊诉求（如'我需要法律援助'、'我要打官司'、'我被骗了'），没有说明具体事实
+- 缺少关键事实：事件经过、涉及金额、对方身份、时间节点等
+- 缺少具体诉求：想要赔偿、想要起诉、想要调
+2026-04-21 17:18:41,705 [agents.planner] [planner:orchestrator] LLM消息[1] role=human: 用户输入：我要打官司
+2026-04-21 17:18:43,865 [httpx] HTTP Request: POST https://api.hunyuan.cloud.tencent.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-21 17:18:43,872 [agents.planner] [planner:orchestrator] LLM 响应(迭代1): 首先询问用户具体的案件信息，然后使用工具来分析用户的情绪状态。
+	
+	用户提出了一个非常宽泛的任务，即'打官司'，但没有提供足够的信息来进行具体的分析。根据工具的描述，我们需要用户提供更具体的信息，如案件类型、涉及金额、对方身份和时间节点等。
+2026-04-21 17:18:43,872 [agents.planner] [planner:orchestrator] 调用工具: analyze_emotion({"user_input": "我要打官司"}...)
+2026-04-21 17:18:43,872 [agents.planner] [planner] 开始调用工具 analyze_emotion, 参数: {"user_input": "我要打官司"}
+2026-04-21 17:18:43,875 [agents.emotion_agent] [emotion_agent] 情绪分析: calm (强度: 0.0)
+2026-04-21 17:18:43,875 [agents.planner] [planner] 工具 analyze_emotion 调用成功, 结果长度: 88
+2026-04-21 17:18:43,875 [agents.planner] [planner:orchestrator] 工具 analyze_emotion 结果: {"emotion": "calm", "intensity": 0.0, "keywords": [], "suggestion": "用户情绪平和，可以直接提供法律分析"}
+2026-04-21 17:18:43,876 [agents.planner] [planner:orchestrator] LLM 迭代 2/5
+2026-04-21 17:18:43,876 [agents.planner] [planner:orchestrator] LLM 请求(迭代2), 消息数=4
+2026-04-21 17:18:43,876 [agents.planner] [planner:orchestrator] LLM消息[0] role=system: 你是法律意图分析规划师。你的任务是：
+1. 分析用户的情绪状态，了解用户的心理状态
+2. 如果用户上传了文件，先读取文件内容
+3. 分析用户的法律诉求，判断意图类型
+4. 查询相关法律知识，了解该类案件需要的关键信息
+5. 分析用户已提供的信息是否完整
+6. 信息完整后，将诉求拆解为可执行的子任务列表
+可用工具：analyze_emotion, classify_intent, decompose_tasks, use_file_reader, use_legal_query, analyze_info_completeness
+请依次调用工具完成分析。第一步务必调用 analyze_emotion 分析用户情绪。
+
+## 追问规则（非常重要）
+在调用 analyze_info_completeness 之后，必须判断信息是否完整。
+以下情况必须使用 need_info 动作向用户追问：
+- 用户只说了模糊诉求（如'我需要法律援助'、'我要打官司'、'我被骗了'），没有说明具体事实
+- 缺少关键事实：事件经过、涉及金额、对方身份、时间节点等
+- 缺少具体诉求：想要赔偿、想要起诉、想要调
+2026-04-21 17:18:43,876 [agents.planner] [planner:orchestrator] LLM消息[1] role=human: 用户输入：我要打官司
+2026-04-21 17:18:43,876 [agents.planner] [planner:orchestrator] LLM消息[2] role=ai: 首先询问用户具体的案件信息，然后使用工具来分析用户的情绪状态。
+	
+	用户提出了一个非常宽泛的任务，即'打官司'，但没有提供足够的信息来进行具体的分析。根据工具的描述，我们需要用户提供更具体的信息，如案件类型、涉及金额、对方身份和时间节点等。
+2026-04-21 17:18:43,877 [agents.planner] [planner:orchestrator] LLM消息[3] role=tool: {"emotion": "calm", "intensity": 0.0, "keywords": [], "suggestion": "用户情绪平和，可以直接提供法律分析"}
+2026-04-21 17:18:46,358 [httpx] HTTP Request: POST https://api.hunyuan.cloud.tencent.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-21 17:18:46,359 [agents.planner] [planner:orchestrator] LLM 响应(迭代2): 根据您提供的信息，您的情绪目前是平和的。为了更好地帮助您，我们需要进一步了解您的案件细节。请问您能提供案件的类型、涉及的金额、对方的身份以及发生的时间吗？这些信息对于我们的分析至关重要。
+2026-04-21 17:18:46,359 [agents.planner] [planner:orchestrator] LLM 迭代 3/5
+2026-04-21 17:18:46,359 [agents.planner] [planner:orchestrator] LLM 请求(迭代3), 消息数=6
+2026-04-21 17:18:46,359 [agents.planner] [planner:orchestrator] LLM消息[0] role=system: 你是法律意图分析规划师。你的任务是：
+1. 分析用户的情绪状态，了解用户的心理状态
+2. 如果用户上传了文件，先读取文件内容
+3. 分析用户的法律诉求，判断意图类型
+4. 查询相关法律知识，了解该类案件需要的关键信息
+5. 分析用户已提供的信息是否完整
+6. 信息完整后，将诉求拆解为可执行的子任务列表
+可用工具：analyze_emotion, classify_intent, decompose_tasks, use_file_reader, use_legal_query, analyze_info_completeness
+请依次调用工具完成分析。第一步务必调用 analyze_emotion 分析用户情绪。
+
+## 追问规则（非常重要）
+在调用 analyze_info_completeness 之后，必须判断信息是否完整。
+以下情况必须使用 need_info 动作向用户追问：
+- 用户只说了模糊诉求（如'我需要法律援助'、'我要打官司'、'我被骗了'），没有说明具体事实
+- 缺少关键事实：事件经过、涉及金额、对方身份、时间节点等
+- 缺少具体诉求：想要赔偿、想要起诉、想要调
+2026-04-21 17:18:46,360 [agents.planner] [planner:orchestrator] LLM消息[1] role=human: 用户输入：我要打官司
+2026-04-21 17:18:46,360 [agents.planner] [planner:orchestrator] LLM消息[2] role=ai: 首先询问用户具体的案件信息，然后使用工具来分析用户的情绪状态。
+	
+	用户提出了一个非常宽泛的任务，即'打官司'，但没有提供足够的信息来进行具体的分析。根据工具的描述，我们需要用户提供更具体的信息，如案件类型、涉及金额、对方身份和时间节点等。
+2026-04-21 17:18:46,360 [agents.planner] [planner:orchestrator] LLM消息[3] role=tool: {"emotion": "calm", "intensity": 0.0, "keywords": [], "suggestion": "用户情绪平和，可以直接提供法律分析"}
+2026-04-21 17:18:46,360 [agents.planner] [planner:orchestrator] LLM消息[4] role=ai: 根据您提供的信息，您的情绪目前是平和的。为了更好地帮助您，我们需要进一步了解您的案件细节。请问您能提供案件的类型、涉及的金额、对方的身份以及发生的时间吗？这些信息对于我们的分析至关重要。
+2026-04-21 17:18:46,360 [agents.planner] [planner:orchestrator] LLM消息[5] role=human: 请明确输出你的决策，格式为：
+ACTION: call_tool / node_done / rollback / need_info
+（如果是 call_tool，请指定 TOOL_NAME 和 TOOL_ARGS）
+2026-04-21 17:18:48,812 [httpx] HTTP Request: POST https://api.hunyuan.cloud.tencent.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-21 17:18:48,814 [agents.planner] [planner:orchestrator] LLM 响应(迭代3): 为了进行有效的法律分析，我们需要您提供更多案件的具体信息。请问您能告诉我案件的类型是什么？涉及的金额是多少？对方的身份是什么？事情发生在什么时候？
+2026-04-21 17:18:48,814 [agents.planner] [planner:orchestrator] LLM 迭代 4/5
+2026-04-21 17:18:48,814 [agents.planner] [planner] 消息压缩: 8 条 → 保留最近4条，旧工具消息截断为200字
+2026-04-21 17:18:48,815 [agents.planner] [planner:orchestrator] LLM 请求(迭代4), 消息数=8
+2026-04-21 17:18:48,815 [agents.planner] [planner:orchestrator] LLM消息[0] role=system: 你是法律意图分析规划师。你的任务是：
+1. 分析用户的情绪状态，了解用户的心理状态
+2. 如果用户上传了文件，先读取文件内容
+3. 分析用户的法律诉求，判断意图类型
+4. 查询相关法律知识，了解该类案件需要的关键信息
+5. 分析用户已提供的信息是否完整
+6. 信息完整后，将诉求拆解为可执行的子任务列表
+可用工具：analyze_emotion, classify_intent, decompose_tasks, use_file_reader, use_legal_query, analyze_info_completeness
+请依次调用工具完成分析。第一步务必调用 analyze_emotion 分析用户情绪。
+
+## 追问规则（非常重要）
+在调用 analyze_info_completeness 之后，必须判断信息是否完整。
+以下情况必须使用 need_info 动作向用户追问：
+- 用户只说了模糊诉求（如'我需要法律援助'、'我要打官司'、'我被骗了'），没有说明具体事实
+- 缺少关键事实：事件经过、涉及金额、对方身份、时间节点等
+- 缺少具体诉求：想要赔偿、想要起诉、想要调
+2026-04-21 17:18:48,815 [agents.planner] [planner:orchestrator] LLM消息[1] role=human: 用户输入：我要打官司
+2026-04-21 17:18:48,815 [agents.planner] [planner:orchestrator] LLM消息[2] role=ai: 首先询问用户具体的案件信息，然后使用工具来分析用户的情绪状态。
+	
+	用户提出了一个非常宽泛的任务，即'打官司'，但没有提供足够的信息来进行具体的分析。根据工具的描述，我们需要用户提供更具体的信息，如案件类型、涉及金额、对方身份和时间节点等。
+2026-04-21 17:18:48,816 [agents.planner] [planner:orchestrator] LLM消息[3] role=tool: {"emotion": "calm", "intensity": 0.0, "keywords": [], "suggestion": "用户情绪平和，可以直接提供法律分析"}
+2026-04-21 17:18:48,816 [agents.planner] [planner:orchestrator] LLM消息[4] role=ai: 根据您提供的信息，您的情绪目前是平和的。为了更好地帮助您，我们需要进一步了解您的案件细节。请问您能提供案件的类型、涉及的金额、对方的身份以及发生的时间吗？这些信息对于我们的分析至关重要。
+2026-04-21 17:18:48,816 [agents.planner] [planner:orchestrator] LLM消息[5] role=human: 请明确输出你的决策，格式为：
+ACTION: call_tool / node_done / rollback / need_info
+（如果是 call_tool，请指定 TOOL_NAME 和 TOOL_ARGS）
+2026-04-21 17:18:48,816 [agents.planner] [planner:orchestrator] LLM消息[6] role=ai: 为了进行有效的法律分析，我们需要您提供更多案件的具体信息。请问您能告诉我案件的类型是什么？涉及的金额是多少？对方的身份是什么？事情发生在什么时候？
+2026-04-21 17:18:48,816 [agents.planner] [planner:orchestrator] LLM消息[7] role=human: 请明确输出你的决策，格式为：
+ACTION: call_tool / node_done / rollback / need_info
+（如果是 call_tool，请指定 TOOL_NAME 和 TOOL_ARGS）
+2026-04-21 17:18:51,117 [httpx] HTTP Request: POST https://api.hunyuan.cloud.tencent.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-21 17:18:51,119 [agents.planner] [planner:orchestrator] LLM 响应(迭代4): 为了进行法律分析，我们需要您提供以下信息：案件的类型、涉及的金额、对方的身份以及事情发生的时间。请问您能提供这些信息吗？
+2026-04-21 17:18:51,119 [agents.planner] [planner:orchestrator] LLM 迭代 5/5
+2026-04-21 17:18:51,120 [agents.planner] [planner] 消息压缩: 10 条 → 保留最近4条，旧工具消息截断为200字
+2026-04-21 17:18:51,120 [agents.planner] [planner:orchestrator] LLM 请求(迭代5), 消息数=10
+2026-04-21 17:18:51,120 [agents.planner] [planner:orchestrator] LLM消息[0] role=system: 你是法律意图分析规划师。你的任务是：
+1. 分析用户的情绪状态，了解用户的心理状态
+2. 如果用户上传了文件，先读取文件内容
+3. 分析用户的法律诉求，判断意图类型
+4. 查询相关法律知识，了解该类案件需要的关键信息
+5. 分析用户已提供的信息是否完整
+6. 信息完整后，将诉求拆解为可执行的子任务列表
+可用工具：analyze_emotion, classify_intent, decompose_tasks, use_file_reader, use_legal_query, analyze_info_completeness
+请依次调用工具完成分析。第一步务必调用 analyze_emotion 分析用户情绪。
+
+## 追问规则（非常重要）
+在调用 analyze_info_completeness 之后，必须判断信息是否完整。
+以下情况必须使用 need_info 动作向用户追问：
+- 用户只说了模糊诉求（如'我需要法律援助'、'我要打官司'、'我被骗了'），没有说明具体事实
+- 缺少关键事实：事件经过、涉及金额、对方身份、时间节点等
+- 缺少具体诉求：想要赔偿、想要起诉、想要调
+2026-04-21 17:18:51,120 [agents.planner] [planner:orchestrator] LLM消息[1] role=human: 用户输入：我要打官司
+2026-04-21 17:18:51,120 [agents.planner] [planner:orchestrator] LLM消息[2] role=ai: 首先询问用户具体的案件信息，然后使用工具来分析用户的情绪状态。
+	
+	用户提出了一个非常宽泛的任务，即'打官司'，但没有提供足够的信息来进行具体的分析。根据工具的描述，我们需要用户提供更具体的信息，如案件类型、涉及金额、对方身份和时间节点等。
+2026-04-21 17:18:51,121 [agents.planner] [planner:orchestrator] LLM消息[3] role=tool: {"emotion": "calm", "intensity": 0.0, "keywords": [], "suggestion": "用户情绪平和，可以直接提供法律分析"}
+2026-04-21 17:18:51,121 [agents.planner] [planner:orchestrator] LLM消息[4] role=ai: 根据您提供的信息，您的情绪目前是平和的。为了更好地帮助您，我们需要进一步了解您的案件细节。请问您能提供案件的类型、涉及的金额、对方的身份以及发生的时间吗？这些信息对于我们的分析至关重要。
+2026-04-21 17:18:51,121 [agents.planner] [planner:orchestrator] LLM消息[5] role=human: 请明确输出你的决策，格式为：
+ACTION: call_tool / node_done / rollback / need_info
+（如果是 call_tool，请指定 TOOL_NAME 和 TOOL_ARGS）
+2026-04-21 17:18:51,121 [agents.planner] [planner:orchestrator] LLM消息[6] role=ai: 为了进行有效的法律分析，我们需要您提供更多案件的具体信息。请问您能告诉我案件的类型是什么？涉及的金额是多少？对方的身份是什么？事情发生在什么时候？
+2026-04-21 17:18:51,121 [agents.planner] [planner:orchestrator] LLM消息[7] role=human: 请明确输出你的决策，格式为：
+ACTION: call_tool / node_done / rollback / need_info
+（如果是 call_tool，请指定 TOOL_NAME 和 TOOL_ARGS）
+2026-04-21 17:18:51,121 [agents.planner] [planner:orchestrator] LLM消息[8] role=ai: 为了进行法律分析，我们需要您提供以下信息：案件的类型、涉及的金额、对方的身份以及事情发生的时间。请问您能提供这些信息吗？
+2026-04-21 17:18:51,121 [agents.planner] [planner:orchestrator] LLM消息[9] role=human: 请明确输出你的决策，格式为：
+ACTION: call_tool / node_done / rollback / need_info
+（如果是 call_tool，请指定 TOOL_NAME 和 TOOL_ARGS）
+2026-04-21 17:18:53,483 [httpx] HTTP Request: POST https://api.hunyuan.cloud.tencent.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-21 17:18:53,489 [agents.planner] [planner:orchestrator] LLM 响应(迭代5): 很抱歉，我们需要您提供更多的案件信息才能进行分析。请问您能告诉我案件的类型是什么？涉及的金额是多少？对方的身份是什么？事情发生在什么时候吗？
+2026-04-21 17:18:53,489 [agents.planner] [planner:orchestrator] 达到最大迭代 5，强制完成
+2026-04-21 17:18:53,490 [agents.planner] [planner:orchestrator] fallback 输出字段: ['info_complete', 'extracted_intent', 'user_emotion']
+2026-04-21 17:18:53,490 [agents.planner] [planner:orchestrator]   info_complete: True
+2026-04-21 17:18:53,490 [agents.planner] [planner:orchestrator]   extracted_intent: {'intent': 'unknown', 'task_count': 1, 'detected_task_types': ['legal_query']}
+2026-04-21 17:18:53,490 [agents.planner] [planner:orchestrator]   user_emotion: {'emotion': 'calm', 'intensity': 0.0, 'keywords': [], 'suggestion': '用户情绪平和，可以直接提供法律分析'}
+2026-04-21 17:18:53,491 [agents.node_subgraph] [planner_node:orchestrator] 决策: node_done
+2026-04-21 17:18:53,491 [agents.main_graph] [orchestrator] 用户输入模糊，强制触发追问
+2026-04-21 17:18:53,491 [agents.main_graph] [orchestrator] 完成: 意图=unknown, 信息完整=False
+2026-04-21 17:18:53,492 [agents.main_graph] [route_after_orchestrator] 路由到 wait_for_user（需要追问用户）
+2026-04-21 17:18:53,493 [fcs.server] [session:57694a53-fb05-42e6-9d12-daa068b8a6bc] Node: orchestrator
+2026-04-21 17:18:53,493 [agents.main_graph] [wait_for_user] 暂停，等待用户回复
+2026-04-21 17:18:53,493 [agents.main_graph] [wait_for_user] 问题: 为了给您提供更准确的法律分析，请补充以下信息：...
+2026-04-21 17:18:53,493 [agents.main_graph] [wait_for_user] 缺少信息: ['案件的基本事实和经过', '您的具体法律诉求', '涉及的时间、金额等关键细节']
+2026-04-21 17:18:53,494 [fcs.server] [session:57694a53-fb05-42e6-9d12-daa068b8a6bc] 工作流执行异常: RuntimeError: Called get_config outside of a runnable context
+Traceback (most recent call last):
+  File "D:\program\fcs\app.py", line 395, in analyze_legal
+    await asyncio.wait_for(_run_initial_stream(), timeout=_WORKFLOW_TIMEOUT)
+  File "C:\Users\Noah\.conda\envs\fsc\lib\asyncio\tasks.py", line 445, in wait_for
+    return fut.result()
+  File "D:\program\fcs\app.py", line 387, in _run_initial_stream
+    async for update in main_graph.astream(initial_state, config=config, stream_mode="updates"):
+  File "C:\Users\Noah\.conda\envs\fsc\lib\site-packages\langgraph\pregel\main.py", line 3128, in astream
+    async for _ in runner.atick(
+  File "C:\Users\Noah\.conda\envs\fsc\lib\site-packages\langgraph\pregel\_runner.py", line 304, in atick
+    await arun_with_retry(
+  File "C:\Users\Noah\.conda\envs\fsc\lib\site-packages\langgraph\pregel\_retry.py", line 242, in arun_with_retry
+    return await task.proc.ainvoke(task.input, config)
+  File "C:\Users\Noah\.conda\envs\fsc\lib\site-packages\langgraph\_internal\_runnable.py", line 709, in ainvoke
+    input = await step.ainvoke(input, config, **kwargs)
+  File "C:\Users\Noah\.conda\envs\fsc\lib\site-packages\langgraph\_internal\_runnable.py", line 473, in ainvoke
+    ret = await self.afunc(*args, **kwargs)
+  File "C:\Users\Noah\.conda\envs\fsc\lib\site-packages\langchain_core\runnables\config.py", line 667, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+  File "C:\Users\Noah\.conda\envs\fsc\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Noah\.conda\envs\fsc\lib\site-packages\langchain_core\runnables\config.py", line 658, in wrapper
+    return func(*args, **kwargs)
+  File "D:\program\fcs\agents\main_graph.py", line 322, in wait_for_user_node
+    user_response = interrupt({"pending_question": pending_question, "missing_info": missing_info})
+  File "C:\Users\Noah\.conda\envs\fsc\lib\site-packages\langgraph\types.py", line 804, in interrupt
+    conf = get_config()["configurable"]
+  File "C:\Users\Noah\.conda\envs\fsc\lib\site-packages\langgraph\config.py", line 29, in get_config
+    raise RuntimeError("Called get_config outside of a runnable context")
+RuntimeError: Called get_config outside of a runnable context
+2026-04-21 17:19:26,787 [fcs.server] 法律多智能体系统服务关闭

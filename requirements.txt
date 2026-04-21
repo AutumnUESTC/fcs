@@ -1,0 +1,19 @@
+# FCS - 法律多智能体系统依赖
+
+# ---- 核心框架 ----
+langgraph>=0.2.0
+langchain-core>=0.3.0
+langchain-openai>=0.2.0       # 混元 OpenAI 兼容接口
+langchain-community>=0.3.0    # 可选：ChatHunyuan 原生集成
+
+# ---- Web 服务 ----
+fastapi>=0.110.0
+uvicorn>=0.27.0
+pydantic>=2.0.0
+
+# ---- HTTP 客户端 ----
+httpx>=0.27.0
+
+# ---- 文件读取 ----
+pymupdf>=1.24.0        # PDF 读取
+python-docx>=1.0.0     # DOCX 读取
