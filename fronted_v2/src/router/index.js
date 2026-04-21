@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import DefaultLayout from '../layouts/DefaultLayout.vue'
 import UserLayout from '../layouts/UserLayout.vue'
+import { isLoggedIn } from '../api/user.js'
 
 const routes = [
   {
@@ -60,6 +61,22 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// 路由守卫 - 检查是否需要登录
+router.beforeEach((to, from, next) => {
+  // 需要登录的路由
+  const requireAuth = to.path.startsWith('/chat')
+  
+  if (requireAuth && !isLoggedIn()) {
+    // 未登录，重定向到登录页
+    next({ path: '/login' })
+  } else if ((to.path === '/login' || to.path === '/register') && isLoggedIn()) {
+    // 已登录访问登录/注册页，重定向到聊天页
+    next({ path: '/chat' })
+  } else {
+    next()
+  }
 })
 
 export default router
