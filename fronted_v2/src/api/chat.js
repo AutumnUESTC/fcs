@@ -375,3 +375,57 @@ export const deleteConversation = async (conversationId) => {
     throw error
   }
 }
+
+/**
+ * 置顶/取消置顶会话
+ * @param {string} conversationId - 会话ID
+ * @param {boolean} isPinned - 是否置顶
+ * @returns {Promise<{code: number, message: string}>}
+ */
+export const pinConversation = async (conversationId, isPinned) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}/pin`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ is_pinned: isPinned })
+    })
+    
+    const result = await response.json()
+    
+    if (result.code !== 200) {
+      throw new Error(result.message || '操作失败')
+    }
+    
+    return result
+  } catch (error) {
+    console.error('置顶操作失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 重命名会话
+ * @param {string} conversationId - 会话ID
+ * @param {string} title - 新标题
+ * @returns {Promise<{code: number, message: string}>}
+ */
+export const renameConversation = async (conversationId, title) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}/rename`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ title })
+    })
+    
+    const result = await response.json()
+    
+    if (result.code !== 200) {
+      throw new Error(result.message || '重命名失败')
+    }
+    
+    return result
+  } catch (error) {
+    console.error('重命名失败:', error)
+    throw error
+  }
+}

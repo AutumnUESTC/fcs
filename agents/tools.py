@@ -294,13 +294,11 @@ def _format_section(section_type: str, title: str, content: str) -> str:
     from datetime import datetime
     if section_type == "header":
         return (
-            "=" * 60 + "\n"
-            + title + "\n"
-            + f"生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-            + "=" * 60
+            f"# {title}\n"
+            f"生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         )
     elif section_type == "footer":
-        return "=" * 60 + "\n" + title + "\n" + "=" * 60
+        return ""
     else:
         return f"\n## {title}\n{content}\n"
 

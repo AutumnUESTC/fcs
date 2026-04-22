@@ -48,6 +48,94 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
+# 动态追问生成（根据用户输入和意图生成个性化的追问内容）
+# ---------------------------------------------------------------------------
+
+
+def _generate_dynamic_followup(
+    user_input: str,
+    extracted_intent: dict[str, Any],
+) -> list[str]:
+    """根据用户输入和识别到的意图，动态生成追问缺失信息列表。
+
+    不再硬编码固定的三条，而是根据意图领域和用户已有信息，
+    生成更有针对性的追问。
+    """
+    intent = extracted_intent.get("intent", "")
+    domain = extracted_intent.get("domain", "")
+
+    # 各意图领域对应的追问模板
+    INTENT_FOLLOWUP: dict[str, list[str]] = {
+        "labor_dispute": [
+            "您与公司的劳动关系类型（正式员工/试用期/劳务派遣）",
+            "公司具体做了什么（拖欠工资/违法解雇/不缴社保等）",
+            "争议发生的时间和持续多久了",
+            "您期望的结果（补发工资/恢复劳动关系/经济补偿等）",
+        ],
+        "contract_review": [
+            "合同的具体条款或原文内容",
+            "您担心的法律风险是什么",
+            "合同另一方是谁（个人/公司）",
+        ],
+        "ip_trade_secret": [
+            "商业秘密的具体内容（技术/客户名单/配方等）",
+            "泄密是怎么发生的",
+            "有没有签过保密协议",
+            "泄密造成了什么损失",
+        ],
+        "fraud_consumer": [
+            "被骗或纠纷的具体经过",
+            "涉及的金额是多少",
+            "对方的身份或联系方式",
+            "您已经采取了哪些措施",
+        ],
+        "legal_query": [
+            "您想查询的具体法律问题",
+            "涉及的领域（劳动/合同/侵权等）",
+            "您当前遇到的具体情况",
+        ],
+        "legal_consultation": [
+            "您遇到的具体事情经过",
+            "涉及的时间和金额等关键信息",
+            "您希望达到的结果或诉求",
+        ],
+    }
+
+    # 根据意图获取追问模板
+    followup_items = INTENT_FOLLOWUP.get(intent, [])
+
+    # 如果意图不明确，用通用模板
+    if not followup_items:
+        followup_items = INTENT_FOLLOWUP["legal_consultation"]
+
+    # 根据用户已有信息过滤：如果用户输入中已包含某些关键词，去掉对应的追问项
+    KEYWORD_INDICATORS: dict[str, list[str]] = {
+        "您与公司的劳动关系类型（正式员工/试用期/劳务派遣）": ["正式员工", "试用期", "劳务派遣", "入职", "员工"],
+        "公司具体做了什么（拖欠工资/违法解雇/不缴社保等）": ["拖欠", "解雇", "辞退", "裁员", "降薪", "不缴社保", "欠薪", "没发工资"],
+        "争议发生的时间和持续多久了": ["月", "年", "周", "天前", "从去年", "从今年"],
+        "您期望的结果（补发工资/恢复劳动关系/经济补偿等）": ["想要", "要求", "补偿", "赔偿", "恢复", "申请"],
+        "被骗或纠纷的具体经过": ["被骗", "骗", "买了", "付款", "转账", "收了", "不发货", "联系不上"],
+        "涉及的金额是多少": ["元", "万", "块", "块钱", "金额"],
+        "对方的身份或联系方式": ["卖家", "商家", "公司", "对方", "平台"],
+        "您已经采取了哪些措施": ["报警", "投诉", "联系", "协商", "举报"],
+        "合同的具体条款或原文内容": ["条款", "约定", "甲方", "乙方"],
+        "您担心的法律风险是什么": ["风险", "违约", "责任", "担心", "怕"],
+    }
+
+    filtered = []
+    for item in followup_items:
+        keywords = KEYWORD_INDICATORS.get(item, [])
+        if not any(kw in user_input for kw in keywords):
+            filtered.append(item)
+
+    # 确保至少有一条追问
+    if not filtered:
+        filtered = ["请更详细地描述您遇到的具体情况和诉求"]
+
+    return filtered
+
+
+# ---------------------------------------------------------------------------
 # 各节点的 Planner 配置
 # ---------------------------------------------------------------------------
 
@@ -224,10 +312,11 @@ def orchestrator_node(state: GlobalCaseState) -> dict[str, Any]:
         )
 
         if is_vague and not output.get("pending_question"):
-            missing_items = ["案件的基本事实和经过", "您的具体法律诉求", "涉及的时间、金额等关键细节"]
-            items_text = "\n".join(f"  {i+1}. {item}" for i, item in enumerate(missing_items))
+            # 根据用户输入动态生成追问内容，不再硬编码
+            dynamic_missing = _generate_dynamic_followup(user_input, extracted_intent)
+            items_text = "\n".join(f"  {i+1}. {item}" for i, item in enumerate(dynamic_missing))
             output["pending_question"] = f"为了给您提供更准确的法律分析，请补充以下信息：\n{items_text}\n\n请详细描述您的情况，以便我们为您提供专业的法律帮助。"
-            output["missing_info"] = missing_items
+            output["missing_info"] = dynamic_missing
             output["info_complete"] = False
             logger.info("[orchestrator] 用户输入模糊，强制触发追问")
 

@@ -73,6 +73,7 @@ class Conversation(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     service_id = Column(String(50), default="qa")  # 服务类型
     title = Column(String(255), default="新对话")
+    is_pinned = Column(Boolean, default=False)  # 是否置顶
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 

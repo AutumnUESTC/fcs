@@ -24,19 +24,42 @@
         <div class="conversations-list" v-if="conversations.length > 0">
           <div 
             v-for="conv in conversations" 
-            :key="conv.id"
+            :key="conv.conversation_id"
             class="conversation-item"
-            :class="{ active: currentConversationId === conv.id }"
-            @click="loadConversation(conv.id)"
+            :class="{ active: currentConversationId === conv.conversation_id, pinned: conv.is_pinned }"
+            @click="loadConversation(conv.conversation_id)"
+            @contextmenu.prevent="showContextMenu($event, conv)"
           >
             <div class="conv-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg v-if="!conv.is_pinned" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6L12 2z"></path>
               </svg>
             </div>
             <div class="conv-info">
-              <div class="conv-title">{{ conv.title }}</div>
-              <div class="conv-time">{{ conv.updatedAt }}</div>
+              <div class="conv-title" v-if="editingId !== conv.conversation_id">{{ conv.title }}</div>
+              <input
+                v-else
+                class="rename-input"
+                v-model="renameValue"
+                @keyup.enter="confirmRename"
+                @keyup.escape="cancelRename"
+                @blur="confirmRename"
+                ref="renameInput"
+                @click.stop
+              />
+              <div class="conv-time">{{ conv.updated_at || conv.updatedAt }}</div>
+            </div>
+            <div class="conv-actions" @click.stop>
+              <button class="action-btn" @click="showContextMenu($event, conv)" title="更多操作">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="5" r="1"></circle>
+                  <circle cx="12" cy="12" r="1"></circle>
+                  <circle cx="12" cy="19" r="1"></circle>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -45,6 +68,35 @@
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
           </svg>
           <span>暂无历史会话</span>
+        </div>
+      </div>
+
+      <!-- 右键菜单 -->
+      <div 
+        v-if="contextMenu.visible" 
+        class="context-menu" 
+        :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }"
+      >
+        <div class="ctx-item" @click="handlePin">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6L12 2z"></path>
+          </svg>
+          <span>{{ contextMenu.conv?.is_pinned ? '取消置顶' : '置顶会话' }}</span>
+        </div>
+        <div class="ctx-item" @click="handleRename">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          <span>重命名</span>
+        </div>
+        <div class="ctx-divider"></div>
+        <div class="ctx-item danger" @click="handleDelete">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>删除会话</span>
         </div>
       </div>
 
@@ -91,21 +143,29 @@
     </aside>
 
     <!-- 主内容区域 -->
-    <main class="main-content">
+    <main class="main-content" @click="closeContextMenu">
       <router-view />
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { getConversationList, clearUserInfo } from '@/api/chat'
+import { getConversationList, deleteConversation, pinConversation, renameConversation, clearUserInfo } from '@/api/chat'
 
 const router = useRouter()
 const showUserMenu = ref(false)
 const conversations = ref([])
 const currentConversationId = ref(null)
+
+// 右键菜单状态
+const contextMenu = ref({ visible: false, x: 0, y: 0, conv: null })
+
+// 重命名状态
+const editingId = ref(null)
+const renameValue = ref('')
+const renameInput = ref(null)
 
 // 加载历史会话列表
 const loadConversationList = async () => {
@@ -144,18 +204,106 @@ const handleLogout = () => {
   router.push('/login')
 }
 
+// 右键菜单
+const showContextMenu = (event, conv) => {
+  event.preventDefault()
+  event.stopPropagation()
+  // 计算菜单位置，防止超出屏幕
+  const sidebar = event.currentTarget.closest('.sidebar') || event.currentTarget.closest('.user-layout')
+  const rect = sidebar ? sidebar.getBoundingClientRect() : { left: 0, top: 0 }
+  let x = event.clientX - rect.left
+  let y = event.clientY - rect.top
+  // 防止超出底部
+  if (y > (rect.height || 600) - 150) y = (rect.height || 600) - 150
+  contextMenu.value = { visible: true, x, y, conv }
+}
+
+const closeContextMenu = () => {
+  contextMenu.value.visible = false
+}
+
+// 置顶
+const handlePin = async () => {
+  const conv = contextMenu.value.conv
+  if (!conv) return
+  try {
+    await pinConversation(conv.conversation_id, !conv.is_pinned)
+    await loadConversationList()
+  } catch (error) {
+    console.error('置顶操作失败:', error)
+  }
+  closeContextMenu()
+}
+
+// 重命名
+const handleRename = () => {
+  const conv = contextMenu.value.conv
+  if (!conv) return
+  editingId.value = conv.conversation_id
+  renameValue.value = conv.title
+  closeContextMenu()
+  nextTick(() => {
+    if (renameInput.value) {
+      const input = Array.isArray(renameInput.value) ? renameInput.value[0] : renameInput.value
+      if (input) input.focus()
+    }
+  })
+}
+
+const confirmRename = async () => {
+  if (!editingId.value || !renameValue.value.trim()) {
+    cancelRename()
+    return
+  }
+  try {
+    await renameConversation(editingId.value, renameValue.value.trim())
+    await loadConversationList()
+  } catch (error) {
+    console.error('重命名失败:', error)
+  }
+  editingId.value = null
+  renameValue.value = ''
+}
+
+const cancelRename = () => {
+  editingId.value = null
+  renameValue.value = ''
+}
+
+// 删除
+const handleDelete = async () => {
+  const conv = contextMenu.value.conv
+  if (!conv) return
+  if (!confirm(`确定删除会话"${conv.title}"吗？`)) return
+  try {
+    await deleteConversation(conv.conversation_id)
+    // 如果删除的是当前会话，跳转到新对话
+    if (currentConversationId.value === conv.conversation_id) {
+      startNewChat()
+    }
+    await loadConversationList()
+  } catch (error) {
+    console.error('删除会话失败:', error)
+  }
+  closeContextMenu()
+}
+
+// 点击其他区域关闭菜单
+const handleClickOutside = () => {
+  closeContextMenu()
+  if (showUserMenu.value) showUserMenu.value = false
+}
+
 // 组件挂载时加载会话列表
 onMounted(() => {
   loadConversationList()
-
-  // 监听会话更新事件
   window.addEventListener('conversation-updated', loadConversationList)
+  document.addEventListener('click', handleClickOutside)
 })
 
-// 组件卸载时移除监听
-import { onUnmounted } from 'vue'
 onUnmounted(() => {
   window.removeEventListener('conversation-updated', loadConversationList)
+  document.removeEventListener('click', handleClickOutside)
 })
 
 // 暴露方法给子组件调用
@@ -170,6 +318,7 @@ defineExpose({
   height: 100vh;
   background: #f0f4f8;
   color: #374151;
+  position: relative;
 }
 
 /* 侧边栏样式 */
@@ -181,6 +330,7 @@ defineExpose({
   flex-direction: column;
   border-right: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.03);
+  position: relative;
 }
 
 .sidebar-header {
@@ -277,6 +427,7 @@ defineExpose({
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .conversation-item:hover {
@@ -287,6 +438,14 @@ defineExpose({
 .conversation-item.active {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%);
   border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.conversation-item.pinned {
+  background: rgba(250, 230, 180, 0.15);
+}
+
+.conversation-item.pinned:hover {
+  background: rgba(250, 230, 180, 0.25);
 }
 
 .conv-icon {
@@ -306,6 +465,16 @@ defineExpose({
   color: white;
 }
 
+.conversation-item.pinned .conv-icon {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #d97706;
+}
+
+.conversation-item.pinned.active .conv-icon {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
 .conv-info {
   flex: 1;
   min-width: 0;
@@ -320,10 +489,54 @@ defineExpose({
   text-overflow: ellipsis;
 }
 
+.conversation-item.pinned .conv-title {
+  font-weight: 600;
+}
+
+.rename-input {
+  width: 100%;
+  font-size: 0.87rem;
+  padding: 2px 6px;
+  border: 1.5px solid #6366f1;
+  border-radius: 6px;
+  outline: none;
+  background: white;
+  color: #374151;
+}
+
 .conv-time {
   font-size: 0.7rem;
   color: #9ca3af;
   margin-top: 3px;
+}
+
+.conv-actions {
+  opacity: 0;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.conversation-item:hover .conv-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
 }
 
 .empty-conversations {
@@ -338,6 +551,68 @@ defineExpose({
 
 .empty-conversations span {
   font-size: 0.85rem;
+}
+
+/* 右键菜单 */
+.context-menu {
+  position: absolute;
+  z-index: 100;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 0.4rem;
+  min-width: 150px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.06);
+  animation: ctxFadeIn 0.15s ease-out;
+}
+
+@keyframes ctxFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.83rem;
+  color: #4b5563;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ctx-item:hover {
+  background: rgba(99, 102, 241, 0.08);
+  color: #6366f1;
+}
+
+.ctx-item svg {
+  opacity: 0.5;
+}
+
+.ctx-item:hover svg {
+  opacity: 1;
+}
+
+.ctx-item.danger {
+  color: #ef4444;
+}
+
+.ctx-item.danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+}
+
+.ctx-item.danger svg {
+  opacity: 0.6;
+}
+
+.ctx-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
+  margin: 0.3rem 0;
 }
 
 /* 侧边栏底部 */

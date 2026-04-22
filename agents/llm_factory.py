@@ -22,7 +22,7 @@ from typing import Any
 # ===========================================================================
 
 # 混元 API Key — 在 https://console.cloud.tencent.com/hunyuan 的 API Key 管理页获取
-_HUNYUAN_API_KEY: str = os.getenv("HUNYUAN_API_KEY", "sk-EbZZmpd8fS42zjgi6T9wl2xPjmgYcN98IIV3nD7r3GJAYdIb")
+_HUNYUAN_API_KEY: str = os.getenv("HUNYUAN_API_KEY", "sk-y5zh3m69vcr5EbyRGw7EsYJNh5nJmVUxrJcFt0E2d4Ch18oV")
 
 # 混元 API 地址（OpenAI 兼容接口）
 _HUNYUAN_BASE_URL: str = os.getenv(
@@ -32,7 +32,7 @@ _HUNYUAN_BASE_URL: str = os.getenv(
 
 # 默认模型名称
 # 可选值：hunyuan-turbos-latest / hunyuan-lite / hunyuan-turbos / hunyuan-functioncall
-_HUNYUAN_DEFAULT_MODEL: str = os.getenv("LLM_MODEL", "hunyuan-lite")
+_HUNYUAN_DEFAULT_MODEL: str = os.getenv("LLM_MODEL", "hunyuan-turbos-latest")
 
 # 温度参数（0 = 确定性输出，越高越随机）
 _HUNYUAN_DEFAULT_TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "0"))

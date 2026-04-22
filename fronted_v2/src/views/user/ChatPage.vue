@@ -158,15 +158,15 @@ const scrollToBottom = () => {
 const loadConversation = async (conversationId) => {
   try {
     const response = await getConversationDetail(conversationId)
-    if (response.code === 200) {
+    if (response.code === 200 && response.data) {
       const data = response.data
       messages.value = data.messages || []
-      selectedServiceId.value = data.serviceId || 'qa'
-      currentConversationId.value = data.id
+      selectedServiceId.value = data.service_id || 'qa'
+      currentConversationId.value = data.conversation_id || conversationId
       setTimeout(scrollToBottom, 100)
     }
+    // code=404 表示会话尚未保存到后端（新对话），静默忽略
   } catch (error) {
-    // 404 表示会话尚未保存到后端（新对话），静默忽略
     // 其他错误也静默处理，避免影响用户创建新对话
     console.warn('加载会话跳过:', error.message || error)
   }

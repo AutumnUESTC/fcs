@@ -348,7 +348,7 @@ async def get_conversations(
     """获取用户的会话列表"""
     conversations = db.query(Conversation).filter(
         Conversation.user_id == current_user.id
-    ).order_by(Conversation.updated_at.desc()).all()
+    ).order_by(Conversation.is_pinned.desc(), Conversation.updated_at.desc()).all()
     
     return ApiResponse(
         code=200,
@@ -359,6 +359,7 @@ async def get_conversations(
                 "conversation_id": conv.conversation_id,
                 "service_id": conv.service_id,
                 "title": conv.title,
+                "is_pinned": conv.is_pinned,
                 "created_at": conv.created_at.strftime("%Y-%m-%d %H:%M:%S"),
                 "updated_at": conv.updated_at.strftime("%Y-%m-%d %H:%M:%S")
             }
@@ -466,10 +467,82 @@ async def delete_conversation(
             detail="会话不存在"
         )
     
+    # 同时删除该会话的所有消息
+    db.query(Message).filter(Message.session_id == conversation_id).delete()
     db.delete(conversation)
     db.commit()
     
     return ApiResponse(code=200, message="删除成功")
+
+
+class PinRequest(BaseModel):
+    """置顶请求"""
+    is_pinned: bool
+
+
+class RenameRequest(BaseModel):
+    """重命名请求"""
+    title: str
+
+
+@app.put("/api/conversations/{conversation_id}/pin", response_model=ApiResponse)
+async def toggle_pin_conversation(
+    conversation_id: str,
+    request: PinRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """置顶/取消置顶会话"""
+    conversation = db.query(Conversation).filter(
+        Conversation.conversation_id == conversation_id,
+        Conversation.user_id == current_user.id
+    ).first()
+    
+    if not conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="会话不存在"
+        )
+    
+    conversation.is_pinned = request.is_pinned
+    db.commit()
+    db.refresh(conversation)
+    
+    return ApiResponse(
+        code=200,
+        message="置顶成功" if request.is_pinned else "取消置顶成功",
+        data={"is_pinned": conversation.is_pinned}
+    )
+
+
+@app.put("/api/conversations/{conversation_id}/rename", response_model=ApiResponse)
+async def rename_conversation(
+    conversation_id: str,
+    request: RenameRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """重命名会话"""
+    conversation = db.query(Conversation).filter(
+        Conversation.conversation_id == conversation_id,
+        Conversation.user_id == current_user.id
+    ).first()
+    
+    if not conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="会话不存在"
+        )
+    
+    conversation.title = request.title
+    db.commit()
+    db.refresh(conversation)
+    
+    return ApiResponse(
+        code=200,
+        message="重命名成功",
+        data={"title": conversation.title}
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
-# FCS - 法律多智能体系统
+# 法脉智联 (FCS) - 法律多智能体系统
 
-基于 LangGraph 的法律多智能体协作系统，支持多轮对话、情感分析、合同审查、法规查询等功能。
+基于 LangGraph 的法律多智能体协作系统，支持多轮对话、情感分析、合同审查、法规查询等功能。前端采用 Vue 3 + Vite 构建，提供流畅的对话交互体验。
 
 ## 系统架构
 
@@ -29,8 +29,14 @@ START → orchestrator ⇄ wait_for_user → executor → reporter → reviewer 
 ## 项目结构
 
 ```
-fcs/
+fcs-1/
 ├── app.py                      # FastAPI 服务入口（HTTP API）
+├── auth.py                     # 用户认证模块（JWT）
+├── database.py                 # 数据库模型与初始化（SQLAlchemy + SQLite）
+├── init_db.py                  # 数据库初始化脚本
+├── requirements.txt            # Python 依赖
+├── start.bat                   # Windows 一键启动脚本
+├── start.sh                    # Linux/Mac 一键启动脚本
 ├── agents/
 │   ├── __init__.py             # 包导出
 │   ├── states.py               # 全局状态定义（GlobalCaseState, NodeSubState, PlannerDecision）
@@ -42,8 +48,8 @@ fcs/
 │   ├── report_agent.py         # 报告生成智能体
 │   ├── reviewer_agents.py      # 报告审核智能体
 │   ├── verifier_agent.py       # 事实核查智能体
-│   ├── emotion_agent.py        # 情感分析智能体（新增）
-│   ├── polish_agent.py         # 文本润色智能体（新增）
+│   ├── emotion_agent.py        # 情感分析智能体
+│   ├── polish_agent.py         # 文本润色智能体
 │   ├── legal_query_agent.py    # 法律知识库查询智能体
 │   ├── file_reader.py          # 文件读取工具（PDF/DOCX/TXT）
 │   ├── drafting_subgraph.py    # 红蓝对抗审查子图
@@ -51,8 +57,74 @@ fcs/
 │   ├── llm_factory.py          # LLM 工厂（当前 Mock 模式）
 │   ├── api.py                  # Python API 入口（支持多轮对话）
 │   └── 工作流示例.md            # 工作流说明文档
-└── fronted_v2/                 # 前端 Vue 项目
+└── fronted_v2/                 # 前端 Vue 3 项目
+    ├── package.json
+    ├── vite.config.js
+    └── src/
+        ├── api/chat.js         # 前端 API 调用层
+        ├── layouts/UserLayout.vue  # 主布局（侧边栏 + 会话列表）
+        ├── views/
+        │   ├── user/ChatPage.vue   # 聊天页面（消息收发 + 流式输出）
+        │   └── pages/AboutPage.vue # 关于页面
+        └── ...
 ```
+
+## 快速开始
+
+### 环境要求
+
+- **Python** 3.10+（推荐使用 Conda 管理）
+- **Node.js** 18+
+- **Conda**（可选，推荐）
+
+### 一键启动
+
+#### Windows
+
+双击 `start.bat` 或在项目根目录运行：
+
+```cmd
+start.bat
+```
+
+#### Linux / Mac
+
+```bash
+chmod +x start.sh
+./start.sh
+```
+
+启动脚本会自动完成以下操作：
+1. 检查 Conda 环境（如已安装，让你选择使用哪个环境）
+2. 检查 Python 和 Node.js
+3. 安装后端 Python 依赖
+4. 安装前端 Node.js 依赖（已有 node_modules 则跳过）
+5. 初始化数据库（含兼容迁移）
+6. 启动后端服务（`http://localhost:5000`）
+7. 启动前端服务（`http://localhost:3000`）
+
+### 手动启动
+
+```bash
+# 1. 激活 Conda 环境（如使用 Conda）
+conda activate your_env_name
+
+# 2. 安装后端依赖
+pip install -r requirements.txt
+
+# 3. 初始化数据库
+python init_db.py
+
+# 4. 启动后端
+python app.py
+
+# 5. 安装前端依赖并启动
+cd fronted_v2
+npm install
+npx vite
+```
+
+启动完成后访问 **http://localhost:3000**
 
 ## 核心设计
 
@@ -137,77 +209,55 @@ planner_node → route_decision ──→ tool_executor ──→ planner_node (
 | reporter | `use_report_generator`, `polish_report` |
 | reviewer | `use_verifier`, `use_legal_query` |
 
-## API 使用
+## API 接口
 
-### HTTP API
+### 认证相关
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/auth/register` | 用户注册 |
+| POST | `/api/auth/login` | 用户登录 |
+
+### 法律分析
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/legal/analyze` | 提交法律问题（支持多轮对话） |
+| POST | `/api/legal/upload` | 上传文件（PDF/DOCX/TXT） |
+| GET  | `/api/legal/health` | 健康检查 |
+
+### 会话管理
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET  | `/api/conversations` | 获取会话列表 |
+| GET  | `/api/conversations/:id` | 获取会话详情（含消息历史） |
+| POST | `/api/conversations` | 保存/更新会话 |
+| POST | `/api/messages` | 发送消息 |
+
+### 示例
 
 ```python
 import httpx
 
-# 第一轮：提交法律问题
-response = httpx.post("http://localhost:8000/api/legal/analyze", json={
+# 提交法律问题
+response = httpx.post("http://localhost:5000/api/legal/analyze", json={
     "user_input": "我的商业秘密被泄露了，能申请禁令吗？",
-    "uploaded_files": [],
-}).json()
+}).json())
 
 # 如果需要追问
 if response["status"] == "need_info":
     session_id = response["session_id"]
-    print(f"系统追问: {response['pending_question']}")
 
-    # 第二轮：回复追问
-    response = httpx.post("http://localhost:8000/api/legal/analyze", json={
+    # 回复追问
+    response = httpx.post("http://localhost:5000/api/legal/analyze", json={
         "session_id": session_id,
         "user_response": "我们签了保密协议，前员工拷贝了客户数据...",
     }).json()
 
 # 最终结果
 if response["status"] == "completed":
-    print(f"情绪: {response['user_emotion']}")
     print(f"报告: {response['report_content']}")
-```
-
-### Python API（多轮对话）
-
-```python
-from agents.api import multi_turn_analyze
-
-# 自动处理追问，默认通过 input() 获取用户回复
-result = multi_turn_analyze("我的商业秘密被泄露了，能申请禁令吗？")
-
-# 自定义追问回调
-result = multi_turn_analyze(
-    user_input="我的商业秘密被泄露了",
-    on_need_info=lambda question, missing: input(f"🤖 {question}\n👤 "),
-)
-
-# 获取结果
-print(result["user_emotion"])      # {"emotion": "anxious", "intensity": 0.7}
-print(result["report_content"])    # 润色后的报告
-print(result["review_passed"])     # True/False
-```
-
-### Python API（单次调用）
-
-```python
-from agents.api import analyze, stream_analyze
-
-# 单次调用（不处理追问）
-result = analyze("请帮我审查这份劳动合同")
-
-# 流式调用
-for step in stream_analyze("请帮我审查这份劳动合同"):
-    print(step)
-```
-
-## 启动服务
-
-```bash
-# 启动 FastAPI 后端
-python app.py
-
-# 或使用 uvicorn
-uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ## 环境变量
@@ -224,16 +274,23 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 
 ## 技术栈
 
+### 后端
 - **LangGraph** — 工作流编排（StateGraph、interrupt、MemorySaver）
 - **LangChain** — 工具注册（@tool）、Agent 抽象
 - **FastAPI** — HTTP API 服务
+- **SQLAlchemy** — ORM（SQLite 数据库）
+- **JWT** — 用户认证
 - **httpx** — 外部 API 调用（小理法律知识库）
 - **Pydantic** — 数据验证
+
+### 前端
+- **Vue 3** — 渐进式前端框架
+- **Vite** — 构建工具
+- **Vue Router** — 路由管理
+- **Pinia** — 状态管理
 
 ## 待实现
 
 - [ ] 真实 LLM 接入（当前为 Mock 模式，Planner 使用预设策略）
 - [ ] 流式 HTTP 响应（SSE）
-- [ ] 用户认证与会话管理
 - [ ] 更多意图类型支持
-- [ ] 前端集成
