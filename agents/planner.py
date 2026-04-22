@@ -144,9 +144,20 @@ class Planner:
 
         # Step 1 (offset): 意图分类
         if iteration == offset:
+            # 提取已上传文件内容用于意图判断
+            file_content = ""
+            if uploaded_files:
+                file_raw = self._find_tool_result(tool_results, "use_file_reader")
+                if file_raw:
+                    try:
+                        file_data = json.loads(file_raw) if isinstance(file_raw, str) else file_raw
+                        file_content = file_data.get("content", "") if isinstance(file_data, dict) else str(file_raw)
+                    except (json.JSONDecodeError, TypeError):
+                        file_content = str(file_raw) if file_raw else ""
             return PlannerDecision(
                 action="call_tool", tool_name="classify_intent",
-                tool_args={"user_input": user_input}, thought="需要先分类用户意图",
+                tool_args={"user_input": user_input, "file_content": file_content},
+                thought="需要先分类用户意图",
             )
 
         # 获取意图数据（从 classify_intent 的结果中）
@@ -175,6 +186,18 @@ class Planner:
         if iteration == offset + 2:
             legal_result = self._find_tool_result(tool_results, "use_legal_query")
             legal_text = legal_result if isinstance(legal_result, str) else str(legal_result)
+
+            # 提取已上传文件内容
+            file_content = ""
+            if uploaded_files:
+                file_raw = self._find_tool_result(tool_results, "use_file_reader")
+                if file_raw:
+                    try:
+                        file_data = json.loads(file_raw) if isinstance(file_raw, str) else file_raw
+                        file_content = file_data.get("content", "") if isinstance(file_data, dict) else str(file_raw)
+                    except (json.JSONDecodeError, TypeError):
+                        file_content = str(file_raw) if file_raw else ""
+
             return PlannerDecision(
                 action="call_tool", tool_name="analyze_info_completeness",
                 tool_args={
@@ -182,6 +205,8 @@ class Planner:
                     "user_input": user_input,
                     "conversation_history": json.dumps(conversation_history, ensure_ascii=False),
                     "legal_query_result": legal_text[:500] if legal_text else "",
+                    "file_content": file_content,
+                    "uploaded_file_names": [str(f) for f in uploaded_files],
                 },
                 thought="分析信息是否完整",
             )
@@ -755,6 +780,20 @@ class Planner:
         uploaded_files = context.get("uploaded_files", [])
         if uploaded_files:
             context_parts.append(f"上传文件：{json.dumps(uploaded_files, ensure_ascii=False)}")
+            # 直接读取文件内容注入上下文（不依赖 LLM 是否主动调用工具）
+            for fp in uploaded_files:
+                try:
+                    from agents.file_reader import read_file as _read_file
+                    result = _read_file(fp)
+                    if result.get("content"):
+                        fc = result["content"]
+                        context_parts.append(
+                            f"文件【{result.get('filename', fp)}】内容：{fc[:3000]}{'...(已截断)' if len(fc) > 3000 else ''}"
+                        )
+                    elif result.get("error"):
+                        context_parts.append(f"文件【{result.get('filename', fp)}】读取失败：{result.get('error')}")
+                except Exception as e:
+                    context_parts.append(f"文件【{fp}】读取异常：{e}")
 
         conversation_history = context.get("conversation_history", [])
         if conversation_history:

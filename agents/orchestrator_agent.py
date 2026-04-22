@@ -27,18 +27,19 @@ logger = logging.getLogger(__name__)
 
 
 @tool
-def classify_intent(user_input: str) -> str:
+def classify_intent(user_input: str, file_content: str = "") -> str:
     """对用户的法律诉求进行意图分类。
 
     根据用户输入判断其法律意图类型，返回结构化 JSON。
 
     Args:
         user_input: 用户的原始法律诉求文本
+        file_content: 用户上传的合同/文件内容（如果有）
 
     Returns:
         意图分类 JSON 字符串
     """
-    result = _classify_intent(user_input)
+    result = _classify_intent(user_input, file_content=file_content)
     return json.dumps(result, ensure_ascii=False)
 
 

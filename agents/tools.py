@@ -183,14 +183,18 @@ def _read_files(file_paths: list[str]) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 
-def _classify_intent(user_input: str) -> dict[str, Any]:
+def _classify_intent(user_input: str, file_content: str = "") -> dict[str, Any]:
     """意图分类的原始逻辑（关键词匹配）"""
-    has_contract = any(kw in user_input for kw in ("合同", "条款", "协议", "合约", "交付"))
-    has_labor = any(kw in user_input for kw in ("工伤", "劳动", "工资", "解雇", "裁员", "试用期", "加班", "社保"))
-    has_ip = any(kw in user_input for kw in ("侵权", "商标", "专利", "著作权", "盗版", "抄袭", "知识产权", "商业秘密"))
-    has_fraud = any(kw in user_input for kw in ("骗", "诈骗", "欺诈", "被骗", "骗局", "骗局", "假", "虚假"))
-    has_consumer = any(kw in user_input for kw in ("退货", "退款", "假货", "质量", "赔偿", "维权", "投诉", "商家", "卖家", "买家", "发货"))
-    has_legal = any(kw in user_input for kw in ("法规", "法律", "法条", "司法解释", "查询", "规定", "依据"))
+    # 把文件内容也纳入判断
+    text_to_check = user_input
+    if file_content:
+        text_to_check = user_input + " " + file_content
+    has_contract = any(kw in text_to_check for kw in ("合同", "条款", "协议", "合约", "交付"))
+    has_labor = any(kw in text_to_check for kw in ("工伤", "劳动", "工资", "解雇", "裁员", "试用期", "加班", "社保"))
+    has_ip = any(kw in text_to_check for kw in ("侵权", "商标", "专利", "著作权", "盗版", "抄袭", "知识产权", "商业秘密"))
+    has_fraud = any(kw in text_to_check for kw in ("骗", "诈骗", "欺诈", "被骗", "骗局", "骗局", "假", "虚假"))
+    has_consumer = any(kw in text_to_check for kw in ("退货", "退款", "假货", "质量", "赔偿", "维权", "投诉", "商家", "卖家", "买家", "发货"))
+    has_legal = any(kw in text_to_check for kw in ("法规", "法律", "法条", "司法解释", "查询", "规定", "依据"))
 
     if has_ip:
         return {"intent": "ip_trade_secret", "domain": "ip", "confidence": 0.9,
@@ -325,6 +329,8 @@ def _analyze_info_completeness(
     user_input: str,
     conversation_history: list[dict[str, str]],
     legal_query_result: str,
+    file_content: str = "",
+    uploaded_file_names: list[str] = [],
 ) -> dict[str, Any]:
     """分析用户已提供的信息是否足够，输出缺少的信息项
 
@@ -336,6 +342,8 @@ def _analyze_info_completeness(
         user_input: 用户原始输入
         conversation_history: 多轮对话历史
         legal_query_result: 之前查询法律知识库的结果
+        file_content: 用户上传的合同/文件内容（如果已上传）
+        uploaded_file_names: 用户上传的文件名列表
 
     Returns:
         {"info_complete": bool, "missing_info": [...], "pending_question": str}
@@ -375,6 +383,13 @@ def _analyze_info_completeness(
     for msg in conversation_history:
         if msg.get("role") == "user":
             all_user_text += " " + msg.get("content", "")
+
+    # 合并已上传文件的内容（最重要！）
+    if file_content:
+        all_user_text += " [上传文件内容]: " + file_content
+    elif uploaded_file_names:
+        # 文件存在但内容为空，只加入文件名作为上下文
+        all_user_text += " [上传文件]: " + ", ".join(uploaded_file_names)
 
     # 简单关键词匹配判断是否已提供
     KEYWORD_MAP = {
@@ -597,6 +612,8 @@ def analyze_info_completeness(
     user_input: str,
     conversation_history: str = "[]",
     legal_query_result: str = "",
+    file_content: str = "",
+    uploaded_file_names: list[str] = [],
 ) -> str:
     """分析用户已提供的信息是否完整，判断是否需要追问。
 
@@ -613,6 +630,8 @@ def analyze_info_completeness(
         user_input: 用户原始输入
         conversation_history: 多轮对话历史的 JSON 字符串
         legal_query_result: 之前查询法律知识库的结果（用于辅助判断）
+        file_content: 用户上传的合同/文件内容（如果已上传）
+        uploaded_file_names: 用户上传的文件名列表
 
     Returns:
         信息完整性分析结果的 JSON 字符串
@@ -627,6 +646,8 @@ def analyze_info_completeness(
         user_input=user_input,
         conversation_history=history,
         legal_query_result=legal_query_result,
+        file_content=file_content,
+        uploaded_file_names=uploaded_file_names,
     )
     return json.dumps(result, ensure_ascii=False)
 
