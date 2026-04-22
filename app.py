@@ -517,29 +517,53 @@ async def send_message(
     
     # 调用法律分析
     try:
-        initial_state: GlobalCaseState = {
-            "user_input": request.content,
-            "uploaded_files": [],
-            "execution_results": [],
-            "review_issues": [],
-        }
-        
-        result_state = await asyncio.wait_for(
-            asyncio.to_thread(main_graph.invoke, initial_state),
-            timeout=_WORKFLOW_TIMEOUT,
-        )
-        
-        # 生成回复内容
-        report_content = result_state.get("report_content", "")
-        pending_question = result_state.get("pending_question", "")
-        info_complete = result_state.get("info_complete", True)
-        
-        if pending_question and not info_complete:
-            assistant_content = pending_question
-            status_type = "need_info"
-        else:
-            assistant_content = report_content or "分析已完成"
+        # 检测快捷指令：[法规查询] → 直接走"小理查询 + LLM 分析"快捷路径
+        is_legal_query_shortcut = "[法规查询]" in request.content
+        query_text = request.content.replace("[法规查询]", "").strip()
+
+        if is_legal_query_shortcut and query_text:
+            logger.info(f"[session:{request.conversation_id}] 检测到[法规查询]快捷指令，走快捷路径")
+
+            # 快捷路径：小理查询 → LLM 分析
+            from agents.tools import _search_xiaoli
+            from agents.report_agent import _llm_legal_analysis, _format_section
+
+            query_result = await asyncio.wait_for(
+                asyncio.to_thread(_search_xiaoli, query_text, ""),
+                timeout=60,
+            )
+
+            header = _format_section("header", "法规查询结果", "")
+            analysis = _llm_legal_analysis(query_text, query_result)
+            analysis_section = _format_section("body", "法律分析与建议", analysis)
+            footer = _format_section("footer", "报告结束", "")
+            assistant_content = "\n".join([header, analysis_section, footer])
             status_type = "completed"
+        else:
+            # 标准路径：走多智能体工作流
+            initial_state: GlobalCaseState = {
+                "user_input": request.content,
+                "uploaded_files": [],
+                "execution_results": [],
+                "review_issues": [],
+            }
+
+            result_state = await asyncio.wait_for(
+                asyncio.to_thread(main_graph.invoke, initial_state),
+                timeout=_WORKFLOW_TIMEOUT,
+            )
+
+            # 生成回复内容
+            report_content = result_state.get("report_content", "")
+            pending_question = result_state.get("pending_question", "")
+            info_complete = result_state.get("info_complete", True)
+
+            if pending_question and not info_complete:
+                assistant_content = pending_question
+                status_type = "need_info"
+            else:
+                assistant_content = report_content or "分析已完成"
+                status_type = "completed"
         
         # 保存助手回复
         assistant_message = Message(
@@ -667,6 +691,34 @@ async def analyze_legal(request: AnalyzeRequest):
                 return AnalyzeResponse(success=False, status="error", session_id=session_id, steps=steps)
 
             logger.info(f"[session:{session_id}] 收到分析请求: {request.user_input[:100]}...")
+
+            # 检测快捷指令：[法规查询] → 直接走"小理查询 + LLM 分析"快捷路径
+            is_legal_query_shortcut = "[法规查询]" in request.user_input
+            query_text = request.user_input.replace("[法规查询]", "").strip()
+
+            if is_legal_query_shortcut and query_text:
+                logger.info(f"[session:{session_id}] 检测到[法规查询]快捷指令，走快捷路径")
+
+                from agents.tools import _search_xiaoli
+                from agents.report_agent import _llm_legal_analysis, _format_section
+
+                query_result = await asyncio.wait_for(
+                    asyncio.to_thread(_search_xiaoli, query_text, ""),
+                    timeout=60,
+                )
+
+                header = _format_section("header", "法规查询结果", "")
+                analysis = _llm_legal_analysis(query_text, query_result)
+                analysis_section = _format_section("body", "法律分析与建议", analysis)
+                footer = _format_section("footer", "报告结束", "")
+
+                return AnalyzeResponse(
+                    success=True,
+                    status="completed",
+                    session_id=session_id,
+                    report_content="\n".join([header, analysis_section, footer]),
+                    steps=steps,
+                )
 
             initial_state: GlobalCaseState = {
                 "user_input": request.user_input,
