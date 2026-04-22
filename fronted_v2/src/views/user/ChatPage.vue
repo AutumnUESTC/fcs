@@ -1,12 +1,33 @@
 <template>
   <div class="chat-page">
     <div class="chat-content">
-      <div class="chat-section">
-        <!-- 服务标签显示 -->
-        <div class="service-badge" v-if="currentService">
-          <span class="service-icon">{{ currentService.icon }}</span>
-          <span class="service-name">{{ currentService.title }}</span>
-        </div>
+      <div class="chat-section" @click="onChatAreaClick">
+        <!-- 服务选择器（可点击展开） -->
+        <div class="service-selector" :class="{ expanded: showServicePicker }">
+          <!-- 当前服务标签行（点击切换） -->
+          <div class="service-bar" @click.stop="toggleServicePicker">
+            <div class="service-current">
+              <span class="svc-icon">{{ currentService.icon }}</span>
+              <span class="svc-name">{{ currentService.title }}</span>
+              <svg :class="['svc-chevron', { open: showServicePicker }]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+
+            <!-- 展开的服务列表 -->
+            <transition name="picker-expand">
+              <div v-if="showServicePicker" class="service-picker-list">
+                <button
+                  v-for="s in serviceList"
+                  :key="s.id"
+                  :class="['svc-option', { active: selectedServiceId === s.id }]"
+                  @click.stop="selectService(s.id)"
+                >
+                  <span class="opt-icon">{{ s.icon }}</span>
+                  <span class="opt-name">{{ s.title }}</span>
+                  <svg v-if="selectedServiceId === s.id" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+              </div>
+            </transition>
+          </div>
 
         <!-- 消息列表 -->
         <div class="messages-container" ref="messagesContainer">
@@ -104,6 +125,7 @@ const messages = ref([])
 const messagesContainer = ref(null)
 const isLoading = ref(false)
 const currentConversationId = ref(null)
+const showServicePicker = ref(false)
 
 // 文件上传相关
 const uploadedFile = ref(null)
@@ -143,6 +165,29 @@ const getServicePrefix = () => {
 // 切换服务时重置回复索引
 const onServiceChange = () => {
   resetResponseIndex()
+}
+
+// 服务选择器
+const toggleServicePicker = () => {
+  showServicePicker.value = !showServicePicker.value
+}
+
+const selectService = (id) => {
+  if (id === selectedServiceId.value) return
+  selectedServiceId.value = id
+  showServicePicker.value = false
+  onServiceChange()
+}
+
+const closeServicePicker = () => {
+  showServicePicker.value = false
+}
+
+// 点击聊天区域其他位置关闭选择器
+const onChatAreaClick = (e) => {
+  if (!e.target.closest('.service-selector')) {
+    showServicePicker.value = false
+  }
 }
 
 // 滚动到底部
@@ -393,25 +438,99 @@ onMounted(async () => {
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-/* ==================== 服务标签 ==================== */
-.service-badge {
+/* ==================== 服务选择器 ==================== */
+.service-selector {
+  position: relative;
+  z-index: 10;
+}
+
+.service-bar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.7rem 1.25rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   font-size: 0.85rem;
   font-weight: 500;
+  border-radius: 0; /* 圆角只给底部 */
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
 }
 
-.service-icon {
-  font-size: 1rem;
+/* 未展开时：顶部圆角 */
+.chat-section > .service-selector:not(.expanded) > .service-bar {
+  border-radius: 24px 24px 0 0;
+}
+/* 展开时：无圆角 */
+.chat-section > .service-selector.expanded > .service-bar {
+  border-radius: 12px 12px 0 0;
 }
 
-.service-name {
-  letter-spacing: 0.3px;
+.service-bar:hover { filter: brightness(1.05); }
+
+.service-current {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1;
+  min-width: 0;
 }
+
+.svc-icon { font-size: 1rem; line-height: 1; }
+.svc-name { letter-spacing: 0.3px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.svc-chevron { opacity: 0.6; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; margin-left: auto; }
+.svc-chevron.open { transform: rotate(180deg); opacity: 1; }
+
+/* 展开的服务列表 */
+.service-picker-list {
+  display: flex;
+  flex-direction: column;
+  background: #fafbff;
+  border-bottom-left: 1px solid rgba(99,102,241,0.08);
+  border-bottom-right: 1px solid rgba(99,102,241,0.08);
+  padding: 6px 8px 10px;
+  gap: 3px;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.06);
+}
+
+.svc-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: none;
+  border-radius: 11px;
+  background: transparent;
+  color: #4b5563;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  font-family: inherit;
+}
+
+.svc-option .opt-icon { font-size: 1rem; flex-shrink: 0; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(255,255,255,0.7); }
+.svc-option .opt-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.svc-option svg:last-child { color: transparent; flex-shrink: 0; transition: color 0.2s; }
+
+.svc-option:hover { background: rgba(99, 102, 241, 0.08); color: #667eea; }
+
+.svc-option.active { background: rgba(99, 102, 241, 0.1) !important; color: #667eea !important; font-weight: 700; }
+.svc-option.active svg:last-child { color: #667eea; }
+.svc-option.active .opt-icon { background: linear-gradient(135deg, #667eea, #764ba2) !important; color: white !important; }
+
+/* 展开动画 */
+.picker-expand-enter-active,
+.picker-expand-leave-active { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
+.picker-expand-enter-from,
+.picker-expand-leave-to { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
+.picker-expand-enter-to,
+.picker-expand-leave-from { max-height: 320px; opacity: 1; }
 
 /* ==================== 消息列表 ==================== */
 .messages-container {

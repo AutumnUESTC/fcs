@@ -100,44 +100,47 @@
         </div>
       </div>
 
-      <!-- 侧边栏底部 -->
+      <!-- 侧边栏底部 - 用户区域 -->
       <div class="sidebar-footer">
-        <div class="user-info" @click="showUserMenu = !showUserMenu">
-          <div class="user-avatar">用</div>
-          <div class="user-details">
-            <div class="user-name">用户名</div>
-            <div class="user-status">在线</div>
+        <div class="user-card" :class="{ expanded: showUserMenu }" @click.stop="showUserMenu = !showUserMenu">
+          <!-- 用户信息行 -->
+          <div class="user-profile-row">
+            <div class="user-avatar-ring">
+              <div class="user-avatar">{{ userInitial }}</div>
+              <span class="online-indicator"></span>
+            </div>
+            <div class="user-details">
+              <div class="user-name">{{ displayName }}</div>
+              <div class="user-role">免费版用户</div>
+            </div>
+            <svg class="chevron-icon" :class="{ rotated: showUserMenu }" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
           </div>
-          <svg class="dropdown-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
-        </div>
 
-        <!-- 用户菜单 -->
-        <div class="user-menu" v-if="showUserMenu">
-          <div class="menu-item" @click="navigateTo('/chat/user-center')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            <span>用户中心</span>
-          </div>
-          <div class="menu-item" @click="navigateTo('/chat/settings')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-            <span>{{ $t('sidebar.settings') }}</span>
-          </div>
-          <div class="menu-divider"></div>
-          <div class="menu-item logout" @click="handleLogout">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            <span>退出登录</span>
-          </div>
+          <!-- 展开：快捷操作按钮组 -->
+          <transition name="expand">
+            <div v-if="showUserMenu" class="quick-actions-row">
+              <button class="quick-action-btn" @click.stop="navigateTo('/chat/user-center')">
+                <div class="qa-icon user-center-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <span>用户中心</span>
+              </button>
+              <button class="quick-action-btn" @click.stop="navigateTo('/chat/settings')">
+                <div class="qa-icon settings-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </div>
+                <span>设置</span>
+              </button>
+              <button class="quick-action-btn logout-btn" @click.stop="handleLogout">
+                <div class="qa-icon logout-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </div>
+                <span>退出</span>
+              </button>
+            </div>
+          </transition>
         </div>
       </div>
     </aside>
@@ -150,7 +153,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { getConversationList, deleteConversation, pinConversation, renameConversation, clearUserInfo } from '@/api/chat'
 
@@ -158,6 +161,18 @@ const router = useRouter()
 const showUserMenu = ref(false)
 const conversations = ref([])
 const currentConversationId = ref(null)
+
+// ========== 用户信息（从 localStorage 读取）==========
+const storedUsername = ref(localStorage.getItem('fcs_username') || '')
+// 动态计算显示名
+const displayName = computed(() => {
+  return storedUsername.value || '未登录用户'
+})
+// 头像首字母
+const userInitial = computed(() => {
+  const name = storedUsername.value || 'U'
+  return name.charAt(0).toUpperCase()
+})
 
 // 右键菜单状态
 const contextMenu = ref({ visible: false, x: 0, y: 0, conv: null })
@@ -615,129 +630,214 @@ defineExpose({
   margin: 0.3rem 0;
 }
 
-/* 侧边栏底部 */
+/* ========== 侧边栏底部 - 用户区域（重设计）========== */
 .sidebar-footer {
   margin-top: auto;
-  padding: 0.85rem;
+  padding: 0.75rem;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
-  background: rgba(255, 255, 255, 0.6);
-  position: relative;
+  background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(248,250,252,0.8) 100%);
 }
 
-.user-info {
+/* 用户卡片容器 */
+.user-card {
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.08);
+}
+
+.user-card:hover {
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.14), 0 0 0 1px rgba(99, 102, 241, 0.12);
+  transform: translateY(-1px);
+}
+
+.user-card.expanded {
+  box-shadow: 0 10px 35px rgba(102, 126, 234, 0.18), 0 0 0 1px rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.18);
+}
+
+/* 用户信息行 */
+.user-profile-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.55rem;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.25s;
+  gap: 0.65rem;
+  padding: 0.7rem 0.85rem;
 }
 
-.user-info:hover {
-  background: rgba(99, 102, 241, 0.06);
+/* 头像 + 在线指示器 */
+.user-avatar-ring {
+  position: relative;
+  flex-shrink: 0;
 }
 
 .user-avatar {
   width: 38px;
   height: 38px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-weight: 600;
-  font-size: 0.9rem;
-  box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 3px 12px rgba(102, 126, 234, 0.35);
 }
 
+.online-indicator {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2.5px solid white;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+  animation: onlinePulse 2.5s infinite;
+}
+
+@keyframes onlinePulse {
+  0%, 100% { box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 2px 12px rgba(16, 185, 129, 0.6); }
+}
+
+/* 用户详情 */
 .user-details {
   flex: 1;
+  min-width: 0;
 }
 
 .user-name {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.user-status {
-  font-size: 0.73rem;
-  color: #10b981;
+.user-role {
+  font-size: 0.72rem;
+  color: #94a3b8;
   font-weight: 500;
+  margin-top: 1px;
 }
 
-.dropdown-icon {
-  opacity: 0.45;
-  transition: all 0.2s;
+/* 箭头图标 */
+.chevron-icon {
+  flex-shrink: 0;
+  color: #cbd5e1;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.user-info:hover .dropdown-icon {
-  opacity: 0.8;
-  transform: rotate(90deg);
+.chevron-icon.rotated {
+  transform: rotate(180deg);
+  color: #667eea;
 }
 
-/* 用户菜单 */
-.user-menu {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0.85rem;
-  right: 0.85rem;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  border-radius: 14px;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
-  box-shadow: 
-    0 10px 40px rgba(0, 0, 0, 0.12),
-    0 0 1px rgba(0, 0, 0, 0.08);
-  animation: menuFadeIn 0.2s ease-out;
+/* ========== 快捷操作按钮组 ========== */
+.quick-actions-row {
+  display: flex;
+  gap: 4px;
+  padding: 0 0.75rem 0.75rem;
+  border-top: 1px solid #f1f5f9;
 }
 
-@keyframes menuFadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+.quick-action-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.55rem 0.25rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
 }
 
-.menu-item {
+.quick-action-btn span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748b;
+  transition: color 0.2s;
+}
+
+.qa-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 0.85rem;
-  color: #4b5563;
-  font-size: 0.88rem;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.menu-item:hover {
-  background: rgba(99, 102, 241, 0.08);
-  color: #6366f1;
+/* 用户中心按钮 */
+.user-center-icon {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.08));
+  color: #667eea;
 }
-
-.menu-item svg {
-  opacity: 0.55;
+.quick-action-btn:hover .user-center-icon {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
 }
+.quick-action-btn:hover span { color: #667eea; }
 
-.menu-item:hover svg {
-  opacity: 1;
+/* 设置按钮 */
+.settings-icon {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(168, 85, 247, 0.08));
+  color: #8b5cf6;
 }
-
-.menu-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
-  margin: 0.4rem 0;
+.quick-action-btn:hover .settings-icon {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  color: white;
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
 }
+.quick-action-btn:hover .settings-btn span,
+.quick-action-btn:nth-child(2):hover span { color: #8b5cf6; }
 
-.menu-item.logout {
+/* 退出按钮 */
+.logout-icon {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(220, 38, 38, 0.05));
   color: #ef4444;
 }
+.logout-btn:hover .logout-icon {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+.logout-btn:hover span { color: #ef4444; }
 
-.menu-item.logout:hover {
-  background: rgba(239, 68, 68, 0.08);
-  color: #dc2626;
+/* 展开动画 */
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.expand-enter-from,
+.expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.expand-enter-to,
+.expand-leave-from {
+  opacity: 1;
+  max-height: 80px;
 }
 
 /* 主内容区域 */
