@@ -182,6 +182,22 @@ export const sendChatMessage = async (conversationId, serviceId, question) => {
       })
     })
     
+    // 处理非 JSON 响应（如 500 Internal Server Error）
+    if (!response.ok) {
+      const text = await response.text()
+      let errorMsg = `请求失败 (${response.status})`
+      try {
+        const errJson = JSON.parse(text)
+        errorMsg = errJson.detail || errJson.message || errorMsg
+      } catch {
+        // 非JSON响应，如 "Internal Server Error"
+        if (text.includes('Internal Server Error')) {
+          errorMsg = '服务器内部错误，请稍后重试'
+        }
+      }
+      throw new Error(errorMsg)
+    }
+    
     const result = await response.json()
     
     if (result.code !== 200) {
@@ -230,6 +246,11 @@ export const getConversationDetail = async (conversationId) => {
       method: 'GET',
       headers: getHeaders()
     })
+    
+    // 404 表示会话不存在（新对话尚未保存），返回空结果而不是抛错
+    if (response.status === 404) {
+      return { code: 404, message: '会话不存在', data: null }
+    }
     
     const result = await response.json()
     

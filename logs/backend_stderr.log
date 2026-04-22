@@ -1,7 +1,0 @@
-INFO:     Will watch for changes in these directories: ['D:\\program\\fcs']
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [27716] using StatReload
-INFO:     Started server process [28332]
-INFO:     Waiting for application startup.
-2026-04-21 20:58:39,578 [fcs.server] 法律多智能体系统服务启动
-INFO:     Application startup complete.

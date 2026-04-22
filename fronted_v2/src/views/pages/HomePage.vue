@@ -22,13 +22,10 @@
       <!-- 基础服务 -->
       <section class="section services-section">
         <h2 class="section-title"><span class="title-icon">✨</span> 基础服务</h2>
-        <div class="cards-container">
-          <div v-for="(service, index) in basicServices" :key="index" class="card service-card" @click="handleServiceClick(service)">
-            <div class="service-icon-wrap">
-              <span class="service-icon">{{ service.icon }}</span>
-            </div>
-            <span class="card-text">{{ service.name }}</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        <div class="service-grid">
+          <div v-for="(service, index) in basicServices" :key="index" class="service-tile" @click="handleServiceClick(service)">
+            <span class="tile-icon">{{ service.icon }}</span>
+            <span class="tile-name">{{ service.name }}</span>
           </div>
         </div>
       </section>
@@ -256,36 +253,44 @@ const handleScenarioClick = (scenario) => {
 
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
 
-/* 服务卡片 */
-.service-card {
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 18px;
-  padding: 1.5rem 1.25rem;
-  cursor: pointer;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
+/* 服务方块网格 */
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
-.service-card:hover {
+.service-tile {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 14px;
+  padding: 1.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  text-align: center;
+}
+
+.service-tile:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.18);
+  box-shadow: 0 10px 28px rgba(99, 102, 241, 0.18);
   border-color: rgba(99, 102, 241, 0.2);
 }
 
-.service-icon-wrap {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #f0edff, #e8e4ff);
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.6rem;
-  flex-shrink: 0;
+.tile-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.tile-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.4;
 }
 
 /* 问题卡片 */
@@ -407,7 +412,7 @@ const handleScenarioClick = (scenario) => {
 @media (max-width: 1024px) {
   .main-title { font-size: 2.4rem; }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
-  .cards-container { grid-template-columns: repeat(3, 1fr); }
+  .service-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 768px) {
@@ -417,6 +422,7 @@ const handleScenarioClick = (scenario) => {
   .search-box { flex-direction: column; margin: 1.5rem auto 2rem; }
   .search-btn { width: 100%; padding: 0.95rem; justify-content: center; }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .service-grid { grid-template-columns: repeat(2, 1fr); }
   .cards-container { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
   .features-bar { flex-direction: column; align-items: center; gap: 1rem; padding: 1.25rem; }
   .scenarios-tags { gap: 0.6rem; }
@@ -425,6 +431,7 @@ const handleScenarioClick = (scenario) => {
 
 @media (max-width: 480px) {
   .main-title { font-size: 1.6rem; }
+  .service-grid { grid-template-columns: repeat(2, 1fr); }
   .cards-container { grid-template-columns: 1fr !important; }
   .grid-3 { grid-template-columns: 1fr !important; }
   .features-bar { gap: 1.5rem; flex-wrap: wrap; }

@@ -166,7 +166,9 @@ const loadConversation = async (conversationId) => {
       setTimeout(scrollToBottom, 100)
     }
   } catch (error) {
-    console.error('加载会话失败:', error)
+    // 404 表示会话尚未保存到后端（新对话），静默忽略
+    // 其他错误也静默处理，避免影响用户创建新对话
+    console.warn('加载会话跳过:', error.message || error)
   }
 }
 
@@ -177,6 +179,7 @@ const sendMessage = async () => {
   // 如果没有会话ID，说明是新对话
   if (!currentConversationId.value) {
     currentConversationId.value = `conv_${Date.now()}`
+    isNewLocalConversation.value = true  // 标记为本地新创建，避免 watch 触发 loadConversation
     router.replace({
       path: '/chat',
       query: { conversationId: currentConversationId.value }
@@ -315,14 +318,19 @@ const typeWriter = async (messageIndex, text) => {
   scrollToBottom()
 }
 
+// 标记：当前会话是否是本地新创建的（还未保存到后端）
+const isNewLocalConversation = ref(false)
+
 // 监听路由变化
 watch(() => route.query.conversationId, (newId) => {
   currentConversationId.value = newId
-  if (newId) {
+  if (newId && !isNewLocalConversation.value) {
     loadConversation(newId)
-  } else {
+  } else if (!newId) {
     messages.value = []
   }
+  // 重置标记
+  isNewLocalConversation.value = false
 }, { immediate: true })
 
 onMounted(async () => {

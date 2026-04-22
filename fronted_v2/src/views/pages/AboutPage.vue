@@ -35,19 +35,19 @@
       
       <div class="stats-container">
         <div class="stat-item">
-          <div class="stat-number">13+</div>
+          <div class="stat-number">xx个</div>
           <div class="stat-label">服务场景</div>
         </div>
         <div class="stat-item">
-          <div class="stat-number">100万+</div>
+          <div class="stat-number">xx万</div>
           <div class="stat-label">服务用户</div>
         </div>
-        <div class="stat-item">
+        <div class="stat-item">xx
           <div class="stat-number">24/7</div>
           <div class="stat-label">在线支持</div>
         </div>
         <div class="stat-item">
-          <div class="stat-number">98%</div>
+          <div class="stat-number">xx%</div>
           <div class="stat-label">用户满意度</div>
         </div>
       </div>
@@ -72,14 +72,13 @@
 .page-title {
   font-size: 3rem;
   font-weight: 800;
-  color: #fff;
+  color: #3b1f6e;
   margin-bottom: 1rem;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .page-description {
   font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #5b3a8c;
   margin-bottom: 4rem;
 }
 
@@ -91,9 +90,9 @@
 }
 
 .about-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(91, 58, 140, 0.15);
   border-radius: 16px;
   padding: 2.5rem;
   text-align: left;
@@ -102,9 +101,9 @@
 
 .about-card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 10px 40px rgba(59, 31, 110, 0.15);
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(91, 58, 140, 0.3);
 }
 
 .card-icon {
@@ -115,13 +114,13 @@
 .card-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #d4af37;
+  color: #5b3a8c;
   margin-bottom: 1rem;
 }
 
 .card-text {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: #4a3560;
   line-height: 1.8;
 }
 
@@ -133,9 +132,9 @@
 }
 
 .stat-item {
-  background: rgba(212, 175, 55, 0.1);
+  background: rgba(91, 58, 140, 0.08);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  border: 1px solid rgba(91, 58, 140, 0.2);
   border-radius: 16px;
   padding: 2rem;
   transition: all 0.3s ease;
@@ -143,24 +142,20 @@
 
 .stat-item:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 30px rgba(212, 175, 55, 0.3);
-  background: rgba(212, 175, 55, 0.15);
+  box-shadow: 0 8px 30px rgba(91, 58, 140, 0.2);
+  background: rgba(91, 58, 140, 0.12);
 }
 
 .stat-number {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #d4af37;
+  color: #5b3a8c;
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #d4af37, #f4d03f);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .stat-label {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #6b4c8a;
 }
 
 @media (max-width: 1024px) {

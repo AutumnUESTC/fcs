@@ -490,13 +490,6 @@ async def send_message(
     ).first()
     
     if not conversation:
-        # 同时在 sessions 表中创建记录（满足 messages 表的外键约束）
-        db.execute(text("""
-            INSERT INTO sessions (id, user_id, title, service_type) 
-            VALUES (:conv_id, :user_id, '新对话', 'qa')
-            ON DUPLICATE KEY UPDATE title='新对话'
-        """), {"conv_id": request.conversation_id, "user_id": current_user.id})
-        
         conversation = Conversation(
             conversation_id=request.conversation_id,
             user_id=current_user.id,

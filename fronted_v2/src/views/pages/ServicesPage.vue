@@ -57,14 +57,13 @@
 .page-title {
   font-size: 3rem;
   font-weight: 800;
-  color: #fff;
+  color: #3b1f6e;
   margin-bottom: 1rem;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .page-description {
   font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #5b3a8c;
   margin-bottom: 3rem;
 }
 
@@ -76,9 +75,9 @@
 }
 
 .service-item {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(91, 58, 140, 0.15);
   border-radius: 16px;
   padding: 2rem;
   transition: all 0.3s ease;
@@ -87,9 +86,9 @@
 
 .service-item:hover {
   transform: translateY(-10px);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 10px 40px rgba(59, 31, 110, 0.15);
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(91, 58, 140, 0.3);
 }
 
 .service-icon {
@@ -100,13 +99,13 @@
 .service-name {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #d4af37;
+  color: #5b3a8c;
   margin-bottom: 0.5rem;
 }
 
 .service-desc {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #4a3560;
   line-height: 1.6;
 }
 

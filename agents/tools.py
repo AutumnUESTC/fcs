@@ -47,7 +47,9 @@ def _call_xiaoli_api(
     sort_field: str = "correlation",
     sort_order: str = "desc",
 ) -> dict[str, Any]:
-    """调用小理 AI API（同步版本）"""
+    """调用小理 AI API（同步版本，含 SSL 错误重试）"""
+    import time
+
     headers = {
         "appid": _XIAOLI_APPID,
         "secret": _XIAOLI_SECRET,
@@ -63,17 +65,31 @@ def _call_xiaoli_api(
     logger.info(f"[xiaoli] API 请求: keywords={keywords}, page={page_no}, size={page_size}")
     logger.debug(f"[xiaoli] API payload: {json.dumps(payload, ensure_ascii=False)}")
 
-    with httpx.Client(timeout=_XIAOLI_TIMEOUT) as client:
-        response = client.post(_XIAOLI_BASE_URL, json=payload, headers=headers)
-        response.raise_for_status()
-        result = response.json()
+    max_retries = 2
+    last_error = None
+    for attempt in range(max_retries + 1):
+        try:
+            with httpx.Client(timeout=_XIAOLI_TIMEOUT) as client:
+                response = client.post(_XIAOLI_BASE_URL, json=payload, headers=headers)
+                response.raise_for_status()
+                result = response.json()
 
-    total = result.get("body", {}).get("totalCount", 0)
-    data_count = len(result.get("body", {}).get("data", []))
-    logger.info(f"[xiaoli] API 响应: totalCount={total}, 返回条数={data_count}")
-    logger.debug(f"[xiaoli] API 完整响应(前500字): {json.dumps(result, ensure_ascii=False)[:500]}")
+            total = result.get("body", {}).get("totalCount", 0)
+            data_count = len(result.get("body", {}).get("data", []))
+            logger.info(f"[xiaoli] API 响应: totalCount={total}, 返回条数={data_count}")
+            logger.debug(f"[xiaoli] API 完整响应(前500字): {json.dumps(result, ensure_ascii=False)[:500]}")
+            return result
 
-    return result
+        except (httpx.RequestError, httpx.HTTPStatusError) as e:
+            last_error = e
+            if attempt < max_retries:
+                wait = 2 ** attempt
+                logger.warning(f"[xiaoli] API 请求失败(第{attempt + 1}次): {type(e).__name__} - {e}，{wait}秒后重试...")
+                time.sleep(wait)
+            else:
+                logger.error(f"[xiaoli] API 请求失败(已重试{max_retries}次): {type(e).__name__} - {e}")
+
+    raise last_error  # type: ignore[misc]
 
 
 def _search_xiaoli(query: str, context: str = "") -> str:

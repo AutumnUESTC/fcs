@@ -224,8 +224,10 @@ def orchestrator_node(state: GlobalCaseState) -> dict[str, Any]:
         )
 
         if is_vague and not output.get("pending_question"):
-            output["pending_question"] = "为了给您提供更准确的法律分析，请补充以下信息："
-            output["missing_info"] = ["案件的基本事实和经过", "您的具体法律诉求", "涉及的时间、金额等关键细节"]
+            missing_items = ["案件的基本事实和经过", "您的具体法律诉求", "涉及的时间、金额等关键细节"]
+            items_text = "\n".join(f"  {i+1}. {item}" for i, item in enumerate(missing_items))
+            output["pending_question"] = f"为了给您提供更准确的法律分析，请补充以下信息：\n{items_text}\n\n请详细描述您的情况，以便我们为您提供专业的法律帮助。"
+            output["missing_info"] = missing_items
             output["info_complete"] = False
             logger.info("[orchestrator] 用户输入模糊，强制触发追问")
 
@@ -294,6 +296,7 @@ def reporter_node(state: GlobalCaseState) -> dict[str, Any]:
                 user_input=state.get("user_input", ""),
                 extracted_intent=state.get("extracted_intent", {}),
                 task_results=state.get("execution_results", []),
+                user_emotion=state.get("user_emotion", {}),
             )
             if auto_report and len(auto_report) > len(report):
                 output["report_content"] = auto_report
