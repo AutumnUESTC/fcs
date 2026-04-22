@@ -29,6 +29,8 @@
             </transition>
           </div>
 
+        </div><!-- /service-selector -->
+
         <!-- 消息列表 -->
         <div class="messages-container" ref="messagesContainer">
           <div v-if="messages.length === 0" class="welcome-message">
