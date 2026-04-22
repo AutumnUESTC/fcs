@@ -1,7 +1,7 @@
 <template>
   <div class="about-page">
     <div class="page-content">
-      <h1 class="page-title">关于智法精灵</h1>
+      <h1 class="page-title">关于法脉智联</h1>
       <p class="page-description">用科技让法律服务触手可及</p>
       
       <div class="about-sections">
@@ -9,7 +9,7 @@
           <div class="card-icon">🎯</div>
           <h3 class="card-title">我们的使命</h3>
           <p class="card-text">
-            智法精灵致力于通过人工智能技术，为用户提供便捷、高效、专业的法律服务。
+            法脉智联致力于通过人工智能技术，为用户提供便捷、高效、专业的法律服务。
             我们相信，每个人都应该能够轻松获取法律咨询和支持。
           </p>
         </div>

@@ -1,90 +1,96 @@
 <template>
   <div class="home-page">
-    <!-- 主内容 -->
     <div class="hero-content">
-      <!-- 大标题 -->
-      <h1 class="main-title">您的随身法律顾问</h1>
-
-      <!-- 副标题 -->
-      <p class="subtitle">
-        覆盖农贸、美容、电商、邻里、婚姻等13+场景，智能咨询+专业律师支持
-      </p>
+      <!-- 大标题区域 -->
+      <div class="hero-section">
+        <div class="badge">AI 驱动 · 专业可靠</div>
+        <h1 class="main-title">
+          您的<span class="highlight">智能</span>法律顾问
+        </h1>
+        <p class="subtitle">覆盖农贸、美容、电商、婚姻等13+场景，智能咨询 + 专业律师支持</p>
+      </div>
 
       <!-- 搜索框 -->
       <div class="search-box">
-        <input
-          v-model="searchKeyword"
-          type="text"
-          class="search-input"
-          placeholder="输入法律问题，例如'职业打假怎么应对'"
-          @keyup.enter="handleSearch"
-        />
+        <input v-model="searchKeyword" type="text" class="search-input" placeholder="输入法律问题，例如'职业打假怎么应对'" @keyup.enter="handleSearch" />
         <button class="search-btn" @click="handleSearch">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
-          </svg>
-          搜索
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          搜索咨询
         </button>
       </div>
 
-      <!-- 常见问题卡片 -->
-      <section class="section">
-        <h2 class="section-title">常见问题</h2>
+      <!-- 基础服务 -->
+      <section class="section services-section">
+        <h2 class="section-title"><span class="title-icon">✨</span> 基础服务</h2>
         <div class="cards-container">
-          <div
-            v-for="(question, index) in commonQuestions"
-            :key="index"
-            class="card"
-            @click="handleCardClick('常见问题', question)"
-          >
-            <div class="card-content">
-              <span class="card-icon">❓</span>
-              <span class="card-text">{{ question }}</span>
+          <div v-for="(service, index) in basicServices" :key="index" class="card service-card" @click="handleServiceClick(service)">
+            <div class="service-icon-wrap">
+              <span class="service-icon">{{ service.icon }}</span>
             </div>
+            <span class="card-text">{{ service.name }}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
         </div>
       </section>
 
-      <!-- 基础服务卡片 -->
-      <section class="section">
-        <h2 class="section-title">基础服务</h2>
-        <div class="cards-container">
-          <div
-            v-for="(service, index) in basicServices"
-            :key="index"
-            class="card service-card"
-            @click="handleCardClick('基础服务', service)"
-          >
-            <div class="card-content">
-              <span class="card-icon">🔧</span>
-              <span class="card-text">{{ service }}</span>
-            </div>
+      <!-- 常见问题 -->
+      <section class="section questions-section">
+        <h2 class="section-title"><span class="title-icon">💡</span> 热门问题</h2>
+        <div class="cards-container grid-3">
+          <div v-for="(question, index) in commonQuestions" :key="index" class="card question-card" @click="handleCardClick('常见问题', question)">
+            <div class="question-number">{{ String(index + 1).padStart(2, '0') }}</div>
+            <span class="card-text">{{ question }}</span>
           </div>
         </div>
       </section>
 
       <!-- 场景标签 -->
       <section class="section scenarios-section">
+        <h2 class="section-title"><span class="title-icon">🏷️</span> 场景标签</h2>
         <div class="scenarios-tags">
-          <span
-            v-for="(scenario, index) in scenarios"
-            :key="index"
-            class="scenario-tag"
-            @click="handleScenarioClick(scenario)"
-          >
-            {{ scenario }}
-          </span>
+          <span v-for="(scenario, index) in scenarios" :key="index" class="scenario-tag" @click="handleScenarioClick(scenario)">{{ scenario }}</span>
         </div>
       </section>
+
+      <!-- 底部特性 -->
+      <div class="features-bar">
+        <div class="feature-item">
+          <span class="feature-icon">⚡</span>
+          <span>秒级响应</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🔒</span>
+          <span>隐私保护</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📚</span>
+          <span>法规库覆盖</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">💬</span>
+          <span>多轮对话</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const searchKeyword = ref('')
+
+// 基础服务
+const basicServices = ref([
+  { id: 'contract', name: '合同文书生成', icon: '📋' },
+  { id: 'compliance', name: '合规自查', icon: '✅' },
+  { id: 'complaint', name: '维权投诉', icon: '🛡️' },
+  { id: 'qa', name: '智能问答', icon: '🤖' },
+  { id: 'laws', name: '法规查询', icon: '📚' },
+  { id: 'lawfirm', name: '律所推荐', icon: '🏢' }
+])
 
 // 常见问题
 const commonQuestions = ref([
@@ -96,333 +102,331 @@ const commonQuestions = ref([
   '离婚时宅基地如何分割？'
 ])
 
-// 基础服务
-const basicServices = ref([
-  '合同文书生成',
-  '合规自查',
-  '维权投诉',
-  '智能问答',
-  '法规查询',
-  '律所推荐'
-])
-
 // 场景标签
-const scenarios = ref([
-  '农贸市场',
-  '美容院',
-  '农村电商',
-  '境外电商',
-  '婚姻家事',
-  '邻里物业',
-  '刑事风险',
-  '教育权益'
-])
+const scenarios = ref(['农贸市场', '美容院', '农村电商', '境外电商', '婚姻家事', '邻里物业', '刑事风险', '教育权益'])
 
-// 搜索
 const handleSearch = () => {
   if (searchKeyword.value.trim()) {
-    alert(`搜索关键词：${searchKeyword.value}`)
+    router.push({ path: '/chat', query: { question: searchKeyword.value.trim() } })
   } else {
     alert('请输入搜索关键词')
   }
 }
 
-// 卡片点击
 const handleCardClick = (type, name) => {
-  alert(`您点击了${type}：${name}`)
+  router.push({ path: '/chat', query: { question: name } })
 }
 
-// 场景标签点击
+const handleServiceClick = (service) => {
+  router.push({ path: '/chat', query: { serviceId: service.id } })
+}
+
 const handleScenarioClick = (scenario) => {
-  console.log('场景：', scenario)
-  alert(`场景：${scenario}`)
+  router.push({ path: '/chat', query: { question: scenario + '相关的法律问题' } })
 }
 </script>
 
 <style scoped>
 .home-page {
-  width: 100%;
-  padding: 2rem 0;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 50%, #faf5ff 100%);
 }
 
 .hero-content {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 3rem 2rem;
+}
+
+/* Hero 区域 */
+.hero-section {
+  text-align: center;
+  padding: 3rem 0 2rem;
+}
+
+.badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+  color: #6366f1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.45rem 1.25rem;
+  border-radius: 50px;
+  letter-spacing: 0.5px;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.12);
 }
 
 .main-title {
-  text-align: center;
-  font-size: 3.5rem;
+  font-size: 3rem;
   font-weight: 800;
-  color: #fff;
-  margin-bottom: 1rem;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  color: #1e293b;
   line-height: 1.2;
+  margin-bottom: 1rem;
+  letter-spacing: -0.5px;
+}
+
+.main-title .highlight {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .subtitle {
-  text-align: center;
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 3rem;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  font-size: 1.08rem;
+  color: #64748b;
+  max-width: 550px;
+  margin: 0 auto;
+  line-height: 1.65;
 }
 
 /* 搜索框 */
 .search-box {
   display: flex;
-  gap: 0.5rem;
-  max-width: 700px;
-  margin: 0 auto 4rem;
+  gap: 0.75rem;
+  max-width: 650px;
+  margin: 2rem auto 3.5rem;
   position: relative;
 }
 
 .search-input {
   flex: 1;
   padding: 1rem 1.5rem;
-  font-size: 1rem;
-  border: 2px solid rgba(212, 175, 55, 0.3);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  color: #fff;
+  font-size: 0.95rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  background: white;
+  color: #1e293b;
   outline: none;
   transition: all 0.3s ease;
-}
-
-.search-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .search-input:focus {
-  border-color: #d4af37;
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 4px 20px rgba(0, 0, 0, 0.06);
 }
+
+.search-input::placeholder { color: #94a3b8; }
 
 .search-btn {
-  padding: 0 1.5rem;
-  background: linear-gradient(135deg, #d4af37, #f4d03f);
-  color: #0a3d5f;
+  padding: 0.85rem 1.75rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 1rem;
+  border-radius: 14px;
+  font-size: 0.92rem;
   font-weight: 600;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
 }
 
-.search-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.5);
+.search-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
 }
 
-/* 区块样式 */
+/* 区块 */
 .section {
-  margin-bottom: 3rem;
+  margin-bottom: 2.5rem;
 }
 
 .section-title {
-  font-size: 1.8rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  color: #d4af37;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  color: #1e293b;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.title-icon {
+  font-size: 1.2rem;
 }
 
 /* 卡片容器 */
 .cards-container {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
-.card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* 服务卡片 */
+.service-card {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 18px;
+  padding: 1.5rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.service-icon-wrap {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #f0edff, #e8e4ff);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+/* 问题卡片 */
+.question-card {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.25rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  min-height: 120px;
   display: flex;
   align-items: center;
+  gap: 0.85rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
-.card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(212, 175, 55, 0.4);
+.question-card:hover {
+  transform: translateX(6px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.15);
 }
 
-.card-content {
+.question-number {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #667eea, #8b5cf6);
+  color: white;
+  border-radius: 8px;
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
   align-items: center;
-  text-align: center;
-  width: 100%;
-}
-
-.card-icon {
-  font-size: 2rem;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 .card-text {
-  font-size: 1rem;
-  color: #fff;
+  font-size: 0.92rem;
+  color: #374151;
   line-height: 1.5;
   font-weight: 500;
+  flex: 1;
+  min-width: 0;
 }
 
-/* 服务卡片特殊样式 */
-.service-card {
-  min-height: 140px;
+.card svg {
+  color: #a0aec0;
+  opacity: 0.4;
+  transition: all 0.3s;
+  flex-shrink: 0;
 }
 
-.service-card .card-icon {
-  font-size: 2.5rem;
+.service-card:hover .card svg { 
+  opacity: 1; 
+  color: #6366f1; 
+  transform: translateX(2px);
 }
-
-.service-card .card-text {
-  font-size: 1.1rem;
-  font-weight: 600;
+.question-card:hover .card svg { 
+  opacity: 1; 
+  color: #6366f1; 
 }
 
 /* 场景标签 */
-.scenarios-section {
-  margin-top: 3rem;
-}
+.scenarios-section { margin-top: 2.5rem; }
 
 .scenarios-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.75rem;
   justify-content: center;
 }
 
 .scenario-tag {
-  padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  border-radius: 25px;
-  color: #fff;
-  font-size: 1rem;
+  padding: 0.7rem 1.4rem;
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 50px;
+  color: #4b5563;
+  font-size: 0.88rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
 .scenario-tag:hover {
-  background: rgba(212, 175, 55, 0.2);
-  border-color: #d4af37;
-  transform: scale(1.08);
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
 }
 
-/* 响应式设计 */
+/* 特性栏 */
+.features-bar {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  padding: 1.75rem;
+  background: rgba(255, 255, 255, 0.55);
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  margin-top: 3rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.87rem;
+  font-weight: 500;
+}
+
+.feature-icon { font-size: 1.15rem; }
+
+/* 响应式 */
 @media (max-width: 1024px) {
-  .main-title {
-    font-size: 2.8rem;
-  }
-
-  .subtitle {
-    font-size: 1.1rem;
-  }
-
-  .cards-container {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .main-title { font-size: 2.4rem; }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .cards-container { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 768px) {
-  .hero-content {
-    padding: 0 1rem;
-  }
-
-  .main-title {
-    font-size: 2rem;
-  }
-
-  .subtitle {
-    font-size: 1rem;
-    margin-bottom: 2rem;
-  }
-
-  .search-box {
-    flex-direction: column;
-    margin-bottom: 3rem;
-  }
-
-  .search-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 0.8rem;
-  }
-
-  .section-title {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .cards-container {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-
-  .card {
-    padding: 1.25rem;
-    min-height: 100px;
-  }
-
-  .card-text {
-    font-size: 0.9rem;
-  }
-
-  .service-card {
-    min-height: 110px;
-  }
-
-  .scenarios-tags {
-    gap: 0.75rem;
-  }
-
-  .scenario-tag {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-  }
+  .hero-content { padding: 2rem 1rem; }
+  .main-title { font-size: 1.9rem; }
+  .subtitle { font-size: 0.93rem; }
+  .search-box { flex-direction: column; margin: 1.5rem auto 2rem; }
+  .search-btn { width: 100%; padding: 0.95rem; justify-content: center; }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .cards-container { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .features-bar { flex-direction: column; align-items: center; gap: 1rem; padding: 1.25rem; }
+  .scenarios-tags { gap: 0.6rem; }
+  .scenario-tag { font-size: 0.82rem; padding: 0.6rem 1.1rem; }
 }
 
 @media (max-width: 480px) {
-  .main-title {
-    font-size: 1.6rem;
-  }
-
-  .subtitle {
-    font-size: 0.9rem;
-  }
-
-  .cards-container {
-    grid-template-columns: 1fr;
-  }
-
-  .card {
-    min-height: 90px;
-  }
-
-  .scenario-tag {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-  }
+  .main-title { font-size: 1.6rem; }
+  .cards-container { grid-template-columns: 1fr !important; }
+  .grid-3 { grid-template-columns: 1fr !important; }
+  .features-bar { gap: 1.5rem; flex-wrap: wrap; }
 }
 </style>

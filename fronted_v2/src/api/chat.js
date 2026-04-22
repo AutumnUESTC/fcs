@@ -275,28 +275,10 @@ export const saveConversation = async (conversationId, serviceId) => {
 }
 
 /**
- * 删除会话
- * @param {string} conversationId - 会话ID
- * @returns {Promise<{code: number, message: string}>}
+ * 重置回复索引（切换服务时调用）
  */
-export const deleteConversation = async (conversationId) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}`, {
-      method: 'DELETE',
-      headers: getHeaders()
-    })
-    
-    const result = await response.json()
-    
-    if (result.code !== 200) {
-      throw new Error(result.message || '删除会话失败')
-    }
-    
-    return result
-  } catch (error) {
-    console.error('删除会话失败:', error)
-    throw error
-  }
+export const resetResponseIndex = () => {
+  // 此函数用于兼容旧版模拟数据逻辑，新版不需要
 }
 
 /**
@@ -347,3 +329,28 @@ export const getServiceList = () => [
     placeholder: '请描述您的法律需求...'
   }
 ]
+
+/**
+ * 删除会话
+ * @param {string} conversationId - 会话ID
+ * @returns {Promise<{code: number, message: string}>}
+ */
+export const deleteConversation = async (conversationId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    })
+    
+    const result = await response.json()
+    
+    if (result.code !== 200) {
+      throw new Error(result.message || '删除会话失败')
+    }
+    
+    return result
+  } catch (error) {
+    console.error('删除会话失败:', error)
+    throw error
+  }
+}

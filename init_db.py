@@ -18,7 +18,8 @@ import os
 # 添加项目根目录到 Python 路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from database import init_db, User, SessionLocal, hash_password
+from database import init_db, User, SessionLocal
+from auth import hash_password
 
 
 def create_test_users():
@@ -41,8 +42,7 @@ def create_test_users():
         for user_data in test_users:
             user = User(
                 username=user_data["username"],
-                password_hash=hash_password(user_data["password"]),
-                nickname=user_data["nickname"]
+                password=hash_password(user_data["password"])
             )
             db.add(user)
             print(f"创建用户: {user_data['username']}")

@@ -2,10 +2,24 @@
   <div class="chat-page">
     <div class="chat-content">
       <div class="chat-section">
+        <!-- 服务标签显示 -->
+        <div class="service-badge" v-if="currentService">
+          <span class="service-icon">{{ currentService.icon }}</span>
+          <span class="service-name">{{ currentService.title }}</span>
+        </div>
+
         <!-- 消息列表 -->
         <div class="messages-container" ref="messagesContainer">
           <div v-if="messages.length === 0" class="welcome-message">
+            <div class="welcome-icon">⚖️</div>
             <p class="welcome-text">{{ currentService.welcome }}</p>
+            <div class="quick-actions">
+              <button 
+                v-for="(q, i) in quickQuestions" :key="i"
+                class="quick-btn"
+                @click="inputText = q; sendMessage()"
+              >{{ q }}</button>
+            </div>
           </div>
           
           <div 
@@ -14,7 +28,10 @@
             class="message"
             :class="msg.role"
           >
-            <div class="message-avatar">{{ msg.role === 'user' ? '我' : 'AI' }}</div>
+            <div class="message-avatar">
+              <span v-if="msg.role === 'user'">👤</span>
+              <span v-else>🤖</span>
+            </div>
             <div class="message-content">
               {{ msg.content }}
               <span v-if="msg.loading" class="typing-indicator">
@@ -28,22 +45,27 @@
 
         <!-- 输入区域 -->
         <div class="chat-input">
-          <!-- 服务选择下拉框 -->
-          <div class="service-select-wrapper">
-            <select v-model="selectedServiceId" class="service-select" @change="onServiceChange">
-              <option 
-                v-for="service in serviceList" 
-                :key="service.id" 
-                :value="service.id"
-              >
-                {{ service.icon }} {{ service.title }}
-              </option>
-            </select>
-            <svg class="select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 12 15 18 9"></polyline>
+          <!-- 文件上传按钮 -->
+          <label class="upload-btn" title="上传文件（PDF、DOC、TXT等）">
+            <input
+              type="file"
+              ref="fileInput"
+              @change="handleFileUpload"
+              accept=".pdf,.doc,.docx,.txt,.md"
+              hidden
+            />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
             </svg>
+          </label>
+          
+          <!-- 已上传文件显示 -->
+          <div v-if="uploadedFile" class="uploaded-file">
+            <span class="file-icon">📄</span>
+            <span class="file-name">{{ uploadedFile.name }}</span>
+            <button @click="removeFile" class="remove-file">×</button>
           </div>
-
+          
           <input
             v-model="inputText"
             type="text"
@@ -52,8 +74,11 @@
             :disabled="isLoading"
             @keyup.enter="sendMessage"
           />
-          <button class="send-btn" :disabled="isLoading || !inputText.trim()" @click="sendMessage">
-            {{ isLoading ? '等待回复...' : '发送' }}
+          <button class="send-btn" :disabled="isLoading || (!inputText.trim() && !uploadedFile)" @click="sendMessage">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
           </button>
         </div>
       </div>
@@ -80,10 +105,40 @@ const messagesContainer = ref(null)
 const isLoading = ref(false)
 const currentConversationId = ref(null)
 
+// 文件上传相关
+const uploadedFile = ref(null)
+const fileInput = ref(null)
+
+// 快捷问题（根据服务类型）
+const quickQuestions = computed(() => {
+  const map = {
+    qa: ['劳动纠纷怎么处理？', '合同违约怎么办？', '离婚需要什么材料？'],
+    contract: ['生成租赁合同', '起草买卖合同', '制作借款协议'],
+    compliance: ['电商合规检查', '企业合规自查', '数据隐私审查'],
+    complaint: ['消费维权投诉', '物业纠纷举报', '环境污染投诉'],
+    laws: ['查询民法典', '搜索公司法', '查找劳动法条款'],
+    lawfirm: ['推荐刑事律师', '找婚姻家事律师', '咨询知识产权律师']
+  }
+  return map[selectedServiceId.value] || map.qa
+})
+
 // 当前选中的服务
 const currentService = computed(() => {
   return serviceList.value.find(s => s.id === selectedServiceId.value) || serviceList.value[0]
 })
+
+// 根据服务ID获取消息前缀
+const getServicePrefix = () => {
+  const prefixes = {
+    contract: '[合同文书生成] ',
+    compliance: '[合规自查] ',
+    complaint: '[维权投诉] ',
+    qa: '',
+    laws: '[法规查询] ',
+    lawfirm: '[律所推荐] '
+  }
+  return prefixes[selectedServiceId.value] || ''
+}
 
 // 切换服务时重置回复索引
 const onServiceChange = () => {
@@ -105,12 +160,9 @@ const loadConversation = async (conversationId) => {
     const response = await getConversationDetail(conversationId)
     if (response.code === 200) {
       const data = response.data
-      // 加载消息历史
       messages.value = data.messages || []
-      // 设置对应的服务
-      selectedServiceId.value = data.serviceId
+      selectedServiceId.value = data.serviceId || 'qa'
       currentConversationId.value = data.id
-      // 滚动到底部
       setTimeout(scrollToBottom, 100)
     }
   } catch (error) {
@@ -120,38 +172,49 @@ const loadConversation = async (conversationId) => {
 
 // 发送消息
 const sendMessage = async () => {
-  if (!inputText.value.trim() || isLoading.value) return
+  if (!inputText.value.trim() && !uploadedFile.value) return
 
-  // 如果没有会话ID，说明是新对话，此时生成临时ID
+  // 如果没有会话ID，说明是新对话
   if (!currentConversationId.value) {
     currentConversationId.value = `conv_${Date.now()}`
-    // 更新 URL，把 ID 带上（replace 不创建新的浏览器历史记录）
     router.replace({
       path: '/chat',
       query: { conversationId: currentConversationId.value }
     })
   }
 
-  const serviceId = selectedServiceId.value
-  const question = inputText.value
+  // 获取原始输入和带前缀的消息
+  const rawQuestion = inputText.value.trim()
+  const question = getServicePrefix() + rawQuestion
   const timestamp = new Date().toLocaleString('zh-CN')
 
-  // 添加用户消息
+  // 处理文件上传
+  let fileMessage = ''
+  if (uploadedFile.value) {
+    fileMessage = `\n\n[已上传文件: ${uploadedFile.value.name} (${(uploadedFile.value.size / 1024).toFixed(1)}KB)]`
+  }
+
+  // 添加用户消息（显示原始内容）
   messages.value.push({
     role: 'user',
-    content: question,
-    serviceId: serviceId
+    content: rawQuestion + (uploadedFile.value ? ` 📎 ${uploadedFile.value.name}` : ''),
+    serviceId: selectedServiceId.value
   })
 
   inputText.value = ''
+  
+  // 清除文件引用（但保留用于发送）
+  const fileToSend = uploadedFile.value
+  uploadedFile.value = null
+  
   scrollToBottom()
 
-  // 添加一条空的消息占位
+  // 添加AI回复占位
   const assistantMessageIndex = messages.value.length
   messages.value.push({
     role: 'assistant',
     content: '',
-    serviceId: serviceId,
+    serviceId: selectedServiceId.value,
     loading: true
   })
 
@@ -159,33 +222,65 @@ const sendMessage = async () => {
   scrollToBottom()
 
   try {
-    // 调用 API（传入 conversationId + message + timestamp）
+    // 调用API（发送带前缀的问题和文件信息）
     const response = await sendChatMessage(
       currentConversationId.value,
-      serviceId,
-      question,
+      selectedServiceId.value,
+      question + fileMessage,
       timestamp
     )
 
-    // 移除 loading 状态
     messages.value[assistantMessageIndex].loading = false
-
-    // 打字机效果显示回复
     const fullResponse = response.data.answer
     await typeWriter(assistantMessageIndex, fullResponse)
-
-    // 保存会话（此时一定有 ID）
     await handleSaveConversation()
 
   } catch (error) {
-    messages.value[assistantMessageIndex].content = '抱歉，服务出现了一点问题，请稍后再试。'
+    console.error('Chat API error:', error)
+    messages.value[assistantMessageIndex].content = '抱歉，服务出现了一点问题：' + (error.message || error)
     messages.value[assistantMessageIndex].loading = false
   }
 
   isLoading.value = false
 }
 
-// 保存会话（一定有 conversationId，无需检查）
+// 文件上传处理
+const handleFileUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  // 文件大小限制（10MB）
+  if (file.size > 10 * 1024 * 1024) {
+    alert('文件大小不能超过10MB')
+    return
+  }
+
+  // 支持的格式
+  const allowedTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
+    'text/markdown'
+  ]
+  
+  if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|txt|md)$/i)) {
+    alert('仅支持 PDF、DOC、DOCX、TXT、MD 格式')
+    return
+  }
+
+  uploadedFile.value = file
+}
+
+// 移除已上传文件
+const removeFile = () => {
+  uploadedFile.value = null
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
+}
+
+// 保存会话
 const handleSaveConversation = async () => {
   try {
     const cleanMessages = messages.value.map(m => ({
@@ -197,7 +292,6 @@ const handleSaveConversation = async () => {
       selectedServiceId.value,
       cleanMessages
     )
-    // 通知侧边栏刷新会话列表
     refreshConversationList()
   } catch (error) {
     console.error('保存会话失败:', error)
@@ -206,8 +300,6 @@ const handleSaveConversation = async () => {
 
 // 刷新会话列表
 const refreshConversationList = () => {
-  // 通过 emit 或 provide/inject 通知父组件刷新
-  // 这里暂时用最简单的方案：手动触发
   const event = new CustomEvent('conversation-updated')
   window.dispatchEvent(event)
 }
@@ -217,48 +309,58 @@ const typeWriter = async (messageIndex, text) => {
   const chars = text.split('')
   for (let i = 0; i < chars.length; i++) {
     messages.value[messageIndex].content += chars[i]
-    // 每输入几个字符后滚动一次
-    if (i % 10 === 0) {
-      scrollToBottom()
-    }
-    // 控制打字速度
+    if (i % 10 === 0) scrollToBottom()
     await new Promise(resolve => setTimeout(resolve, 20))
   }
   scrollToBottom()
 }
 
-// 监听路由变化，加载历史会话
+// 监听路由变化
 watch(() => route.query.conversationId, (newId) => {
   currentConversationId.value = newId
   if (newId) {
     loadConversation(newId)
   } else {
-    // 无 ID，清空消息
     messages.value = []
   }
 }, { immediate: true })
 
-// 组件挂载时检查是否有会话ID
-onMounted(() => {
+onMounted(async () => {
   const id = route.query.conversationId
   if (id) {
     currentConversationId.value = id
     loadConversation(id)
+    return
+  }
+
+  const serviceId = route.query.serviceId
+  if (serviceId && serviceList.value.find(s => s.id === serviceId)) {
+    selectedServiceId.value = serviceId
+    onServiceChange()
+  }
+
+  const question = route.query.question
+  if (question) {
+    inputText.value = question
+    await nextTick()
+    sendMessage()
   }
 })
 </script>
 
 <style scoped>
+/* ==================== 整体布局 ==================== */
 .chat-page {
-  padding: 2rem;
+  padding: 1.5rem;
   height: 100%;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
 }
 
 .chat-content {
-  max-width: 1000px;
+  max-width: 900px;
   width: 100%;
   margin: 0 auto;
   flex: 1;
@@ -267,64 +369,140 @@ onMounted(() => {
   min-height: 0;
 }
 
+/* ==================== 主聊天区域 ==================== */
 .chat-section {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 10px 30px -5px rgba(0, 0, 0, 0.08),
+    0 25px 50px -12px rgba(0, 0, 0, 0.06);
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-/* 消息列表 */
+/* ==================== 服务标签 ==================== */
+.service-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.service-icon {
+  font-size: 1rem;
+}
+
+.service-name {
+  letter-spacing: 0.3px;
+}
+
+/* ==================== 消息列表 ==================== */
 .messages-container {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding: 1.5rem;
+  background: linear-gradient(to bottom, #fafbfc, #f8f9fa);
 }
 
-/* 自定义滚动条 */
 .messages-container::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 .messages-container::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
+  background: transparent;
 }
 
 .messages-container::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.4);
-  border-radius: 3px;
+  background: linear-gradient(135deg, #c7d2fe, #ddd6fe);
+  border-radius: 10px;
 }
 
-.messages-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 175, 55, 0.6);
-}
-
+/* ==================== 欢迎界面 ==================== */
 .welcome-message {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.welcome-icon {
+  font-size: 3.5rem;
+  filter: drop-shadow(0 4px 12px rgba(102, 126, 234, 0.3));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .welcome-text {
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.15rem;
+  color: #4a5568;
   text-align: center;
-  max-width: 500px;
+  max-width: 480px;
   line-height: 1.8;
+  font-weight: 400;
 }
 
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.quick-btn {
+  padding: 0.6rem 1.2rem;
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 50px;
+  color: #4a5568;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.quick-btn:hover {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35);
+}
+
+/* ==================== 消息样式 ==================== */
 .message {
   display: flex;
-  gap: 1rem;
+  gap: 0.85rem;
   margin-bottom: 1.5rem;
+  animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .message.user {
@@ -332,188 +510,209 @@ onMounted(() => {
 }
 
 .message-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 1.1rem;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .message.user .message-avatar {
-  background: linear-gradient(135deg, #d4af37, #f4d03f);
-  color: #212121;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .message.assistant .message-avatar {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
 .message-content {
   max-width: 70%;
   padding: 1rem 1.25rem;
-  border-radius: 16px;
-  font-size: 0.95rem;
-  line-height: 1.6;
+  border-radius: 18px;
+  font-size: 0.93rem;
+  line-height: 1.65;
   white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .message.user .message-content {
-  background: linear-gradient(135deg, #d4af37, #f4d03f);
-  color: #212121;
-  border-bottom-right-radius: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom-right-radius: 6px;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
 }
 
 .message.assistant .message-content {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border-bottom-left-radius: 4px;
+  background: white;
+  color: #374151;
+  border-bottom-left-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 /* 打字指示器 */
 .typing-indicator {
   display: inline-flex;
-  gap: 4px;
-  padding: 4px 8px;
-  margin-left: 8px;
+  gap: 5px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
 }
 
 .typing-indicator span {
-  width: 6px;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.6);
+  width: 7px;
+  height: 7px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   border-radius: 50%;
-  animation: typing 1.4s infinite;
+  animation: typingDot 1.4s infinite ease-in-out;
 }
 
-.typing-indicator span:nth-child(2) {
-  animation-delay: 0.2s;
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingDot {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
 }
 
-.typing-indicator span:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes typing {
-  0%, 60%, 100% {
-    transform: translateY(0);
-  }
-  30% {
-    transform: translateY(-4px);
-  }
-}
-
-/* 输入区域 */
+/* ==================== 输入区域 ==================== */
 .chat-input {
   display: flex;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 0.85rem;
+  padding: 1.25rem 1.5rem;
+  background: white;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
   align-items: center;
 }
 
-/* 服务选择下拉框 */
-.service-select-wrapper {
-  position: relative;
+/* 文件上传按钮 */
+.upload-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 2px dashed #d1d5db;
   display: flex;
   align-items: center;
-}
-
-.service-select {
-  appearance: none;
-  padding: 0.6rem 2rem 0.6rem 0.75rem;
-  font-size: 0.85rem;
-  color: #d4af37;
-  background: rgba(212, 175, 55, 0.15);
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  border-radius: 8px;
+  justify-content: center;
   cursor: pointer;
-  outline: none;
-  transition: all 0.2s;
+  color: #6b7280;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  background: #f9fafb;
 }
 
-.service-select:hover {
-  background: rgba(212, 175, 55, 0.2);
-  border-color: rgba(212, 175, 55, 0.5);
+.upload-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
 }
 
-.service-select:focus {
-  border-color: #d4af37;
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+/* 已上传文件显示 */
+.uploaded-file {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: #4f46e5;
+  max-width: 200px;
 }
 
-.service-select option {
-  background: #2a2a2a;
-  color: #fff;
-  padding: 0.5rem;
+.file-icon {
+  font-size: 1.1rem;
 }
 
-.select-arrow {
-  position: absolute;
-  right: 0.5rem;
-  pointer-events: none;
-  color: #d4af37;
-  opacity: 0.7;
+.file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove-file {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0 0.25rem;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.remove-file:hover {
+  color: #ef4444;
 }
 
 .input-field {
   flex: 1;
-  padding: 0.875rem 1.25rem;
+  padding: 0.95rem 1.35rem;
   font-size: 0.95rem;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #1a202c;
   outline: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .input-field::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: #a0aec0;
 }
 
 .input-field:focus {
-  border-color: #d4af37;
-  background: rgba(255, 255, 255, 0.15);
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
 .input-field:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  background: #edf2f7;
 }
 
 .send-btn {
-  padding: 0.875rem 1.5rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #212121;
-  background: linear-gradient(135deg, #d4af37, #f4d03f);
+  padding: 0.95rem 1.4rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.35);
 }
 
 .send-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.45);
+}
+
+.send-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
 }
 
 .send-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.45;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
-/* 响应式设计 */
+/* ==================== 响应式设计 ==================== */
 @media (max-width: 768px) {
   .chat-page {
-    padding: 1rem;
+    padding: 0.75rem;
   }
 
   .welcome-text {
@@ -521,28 +720,26 @@ onMounted(() => {
   }
 
   .message-content {
-    max-width: 85%;
+    max-width: 82%;
   }
 
   .chat-input {
     flex-direction: column;
     gap: 0.75rem;
-  }
-
-  .service-select-wrapper {
-    width: 100%;
-  }
-
-  .service-select {
-    width: 100%;
-  }
-
-  .input-field {
-    width: 100%;
+    padding: 1rem;
   }
 
   .send-btn {
-    width: 100%;
+    padding: 0.95rem;
+  }
+
+  .quick-actions {
+    gap: 0.5rem;
+  }
+
+  .quick-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
   }
 }
 </style>

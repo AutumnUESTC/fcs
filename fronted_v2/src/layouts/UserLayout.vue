@@ -3,9 +3,9 @@
     <!-- 侧边栏 -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="logo" @click="navigateTo('/chat')">
+        <div class="logo" @click="navigateTo('/')">
           <span class="logo-icon">⚖️</span>
-          <span class="logo-text">智法精灵</span>
+          <span class="logo-text">法脉智联</span>
         </div>
       </div>
 
@@ -100,7 +100,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getConversationList } from '@/api/chat'
+import { getConversationList, clearUserInfo } from '@/api/chat'
 
 const router = useRouter()
 const showUserMenu = ref(false)
@@ -140,6 +140,7 @@ const startNewChat = () => {
 
 const handleLogout = () => {
   showUserMenu.value = false
+  clearUserInfo()
   router.push('/login')
 }
 
@@ -167,23 +168,25 @@ defineExpose({
 .user-layout {
   display: flex;
   height: 100vh;
-  background: #212121;
-  color: #ececf1;
+  background: #f0f4f8;
+  color: #374151;
 }
 
 /* 侧边栏样式 */
 .sidebar {
   width: 280px;
   height: 100vh;
-  background: #212121;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   display: flex;
   flex-direction: column;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.03);
 }
 
 .sidebar-header {
-  padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.25rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  background: white;
 }
 
 .logo {
@@ -191,21 +194,21 @@ defineExpose({
   align-items: center;
   gap: 0.75rem;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: transform 0.3s ease;
 }
 
 .logo:hover {
-  opacity: 0.8;
+  transform: scale(1.02);
 }
 
 .logo-icon {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
 }
 
 .logo-text {
-  font-size: 1.25rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, #d4af37, #f4d03f);
+  font-size: 1.3rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -218,19 +221,21 @@ defineExpose({
   gap: 0.75rem;
   width: calc(100% - 1.5rem);
   margin: 1rem 0.75rem;
-  padding: 0.75rem 1rem;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  color: #ececf1;
+  padding: 0.85rem 1.1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
   font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.35);
 }
 
 .new-chat-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.45);
 }
 
 /* 历史会话列表 */
@@ -240,53 +245,65 @@ defineExpose({
   padding: 0 0.75rem;
 }
 
+.conversations-section::-webkit-scrollbar {
+  width: 4px;
+}
+
+.conversations-section::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
 .section-title {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
-  padding: 0.5rem 0.25rem;
+  color: #9ca3af;
+  padding: 0.75rem 0.5rem 0.5rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
+  font-weight: 600;
 }
 
 .conversations-list {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.3rem;
 }
 
 .conversation-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 6px;
+  padding: 0.85rem;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .conversation-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(99, 102, 241, 0.08);
+  transform: translateX(3px);
 }
 
 .conversation-item.active {
-  background: rgba(212, 175, 55, 0.15);
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.25);
 }
 
 .conv-icon {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
+  background: linear-gradient(135deg, #f0f0ff, #e8e8ff);
+  border-radius: 10px;
   flex-shrink: 0;
+  color: #6366f1;
 }
 
 .conversation-item.active .conv-icon {
-  background: rgba(212, 175, 55, 0.2);
-  color: #d4af37;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
 }
 
 .conv-info {
@@ -295,8 +312,9 @@ defineExpose({
 }
 
 .conv-title {
-  font-size: 0.85rem;
-  color: #ececf1;
+  font-size: 0.87rem;
+  color: #374151;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -304,8 +322,8 @@ defineExpose({
 
 .conv-time {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.4);
-  margin-top: 2px;
+  color: #9ca3af;
+  margin-top: 3px;
 }
 
 .empty-conversations {
@@ -313,20 +331,21 @@ defineExpose({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
-  color: rgba(255, 255, 255, 0.3);
+  padding: 3rem 1rem;
+  color: #9ca3af;
   gap: 0.5rem;
 }
 
 .empty-conversations span {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
 
 /* 侧边栏底部 */
 .sidebar-footer {
   margin-top: auto;
-  padding: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.85rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.6);
   position: relative;
 }
 
@@ -334,26 +353,28 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem;
-  border-radius: 6px;
+  padding: 0.55rem;
+  border-radius: 12px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.25s;
 }
 
 .user-info:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(99, 102, 241, 0.06);
 }
 
 .user-avatar {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, #d4af37, #f4d03f);
-  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #212121;
+  color: white;
   font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
 }
 
 .user-details {
@@ -361,58 +382,68 @@ defineExpose({
 }
 
 .user-name {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #ececf1;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .user-status {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.73rem;
+  color: #10b981;
+  font-weight: 500;
 }
 
 .dropdown-icon {
-  opacity: 0.6;
-  transition: transform 0.2s;
+  opacity: 0.45;
+  transition: all 0.2s;
 }
 
 .user-info:hover .dropdown-icon {
-  opacity: 1;
+  opacity: 0.8;
+  transform: rotate(90deg);
 }
 
 /* 用户菜单 */
 .user-menu {
   position: absolute;
-  bottom: 100%;
-  left: 0.75rem;
-  right: 0.75rem;
-  background: #2a2a2a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  bottom: calc(100% + 8px);
+  left: 0.85rem;
+  right: 0.85rem;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  border-radius: 14px;
   padding: 0.5rem;
   margin-bottom: 0.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.12),
+    0 0 1px rgba(0, 0, 0, 0.08);
+  animation: menuFadeIn 0.2s ease-out;
+}
+
+@keyframes menuFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .menu-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.6rem 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.875rem;
-  border-radius: 4px;
+  padding: 0.65rem 0.85rem;
+  color: #4b5563;
+  font-size: 0.88rem;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .menu-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ececf1;
+  background: rgba(99, 102, 241, 0.08);
+  color: #6366f1;
 }
 
 .menu-item svg {
-  opacity: 0.7;
+  opacity: 0.55;
 }
 
 .menu-item:hover svg {
@@ -421,8 +452,8 @@ defineExpose({
 
 .menu-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
-  margin: 0.5rem 0;
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
+  margin: 0.4rem 0;
 }
 
 .menu-item.logout {
@@ -430,7 +461,8 @@ defineExpose({
 }
 
 .menu-item.logout:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
 }
 
 /* 主内容区域 */
@@ -440,7 +472,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: #212121;
+  background: linear-gradient(135deg, #f5f7fa 0%, #eef0f4 50%, #f0f4f8 100%);
 }
 
 /* 响应式设计 */
@@ -449,7 +481,8 @@ defineExpose({
     position: fixed;
     left: -280px;
     z-index: 1000;
-    transition: left 0.3s;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
   }
 
   .sidebar.open {

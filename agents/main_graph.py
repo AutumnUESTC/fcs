@@ -56,12 +56,12 @@ ORCHESTRATOR_PLANNER = Planner(
     system_prompt=(
         "你是法律意图分析规划师。你的任务是：\n"
         "1. 分析用户的情绪状态，了解用户的心理状态\n"
-        "2. 如果用户上传了文件，先读取文件内容\n"
-        "3. 分析用户的法律诉求，判断意图类型\n"
-        "4. 查询相关法律知识，了解该类案件需要的关键信息\n"
-        "5. 分析用户已提供的信息是否完整\n"
-        "6. 信息完整后，将诉求拆解为可执行的子任务列表\n"
+        "2. 分析用户的法律诉求，判断意图类型\n"
+        "3. 查询相关法律知识，了解该类案件需要的关键信息\n"
+        "4. 分析用户已提供的信息是否完整\n"
+        "5. 信息完整后，将诉求拆解为可执行的子任务列表\n"
         "可用工具：analyze_emotion, classify_intent, decompose_tasks, use_file_reader, use_legal_query, analyze_info_completeness\n"
+        "重要：绝对不要假设用户上传了文件。只有在用户明确说'我上传了文件'或'这是文件'且提供了具体文件路径时，才调用 use_file_reader。如果用户只是提到合同、协议等关键词，但没有提供文件路径，不要调用 use_file_reader。\n"
         "请依次调用工具完成分析。第一步务必调用 analyze_emotion 分析用户情绪。\n\n"
         "## 追问规则（非常重要）\n"
         "在调用 analyze_info_completeness 之后，必须判断信息是否完整。\n"
@@ -84,7 +84,7 @@ ORCHESTRATOR_PLANNER = Planner(
         "extracted_intent 是必须的，来自 classify_intent 工具结果。user_emotion 来自 analyze_emotion 工具结果。"
     ),
     tools=[analyze_emotion, classify_intent, decompose_tasks, use_file_reader, use_legal_query, analyze_info_completeness],
-    max_iterations=5,
+    max_iterations=10,
 )
 
 EXECUTOR_PLANNER = Planner(
@@ -108,7 +108,7 @@ EXECUTOR_PLANNER = Planner(
         "execution_results 是必须的，每个元素包含 task_id, task_type, description, status, result。把所有工具调用结果汇总到 execution_results 中。"
     ),
     tools=[use_legal_query, use_contract_review, use_verifier],
-    max_iterations=5,
+    max_iterations=10,
 )
 
 REPORTER_PLANNER = Planner(

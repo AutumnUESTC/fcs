@@ -1,53 +1,38 @@
 <template>
   <div class="login-page">
     <div class="login-container">
+      <!-- Logo -->
+      <div class="logo-area">
+        <div class="logo-icon">⚖️</div>
+        <h1 class="brand-name">法脉智联</h1>
+        <p class="brand-desc">智能法律咨询平台</p>
+      </div>
+
       <div class="login-card">
-        <h1 class="login-title">用户登录</h1>
+        <h2 class="card-title">欢迎回来</h2>
+        <p class="card-subtitle">登录您的账户继续使用</p>
         
         <form class="login-form" @submit.prevent="handleSubmit">
-          <!-- 用户名输入框 -->
           <div class="form-group">
-            <label class="form-label">
-              <span class="label-icon">👤</span>
-              <span>用户名</span>
-            </label>
-            <input
-              v-model="formData.username"
-              type="text"
-              class="form-input"
-              placeholder="请输入用户名"
-              required
-            />
+            <label class="form-label">用户名</label>
+            <input v-model="formData.username" type="text" class="form-input" placeholder="请输入用户名" required />
           </div>
 
-          <!-- 密码输入框 -->
           <div class="form-group">
-            <label class="form-label">
-              <span class="label-icon">🔒</span>
-              <span>密码</span>
-            </label>
-            <input
-              v-model="formData.password"
-              type="password"
-              class="form-input"
-              placeholder="请输入密码"
-              required
-            />
+            <label class="form-label">密码</label>
+            <input v-model="formData.password" type="password" class="form-input" placeholder="请输入密码" required />
           </div>
 
-          <!-- 错误提示 -->
           <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
 
-          <!-- 登录按钮 -->
           <button type="submit" class="submit-btn" :disabled="isLoading">
-            {{ isLoading ? '登录中...' : '立即登录' }}
+            {{ isLoading ? '登录中...' : '登录' }}
           </button>
         </form>
 
-        <!-- 切换到注册 -->
         <div class="switch-text">
-          <span>没有账号？</span>
-          <router-link to="/register" class="switch-btn">去注册</router-link>
+          还没有账户？
+          <router-link to="/register" class="link-btn">立即注册</router-link>
         </div>
       </div>
     </div>
@@ -60,24 +45,16 @@ import { useRouter } from 'vue-router'
 import { login } from '@/api/user'
 
 const router = useRouter()
-
-const formData = reactive({
-  username: '',
-  password: ''
-})
+const formData = reactive({ username: '', password: '' })
 const errorMsg = ref('')
 const isLoading = ref(false)
 
-// 提交表单
 const handleSubmit = async () => {
   errorMsg.value = ''
   isLoading.value = true
-
   try {
     const res = await login(formData.username, formData.password)
-    if (res.code === 200) {
-      router.push('/chat')
-    }
+    if (res.code === 200) router.push('/chat')
   } catch (error) {
     errorMsg.value = error.message || '登录失败，请重试'
   } finally {
@@ -91,158 +68,111 @@ const handleSubmit = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 80px - 80px);
+  min-height: calc(100vh - 120px);
   padding: 2rem;
+  background: linear-gradient(135deg, #f5f7fa, #e8ecf4);
 }
 
-.login-container {
-  width: 100%;
-  max-width: 500px;
+.login-container { width: 100%; max-width: 420px; }
+
+.logo-area {
+  text-align: center;
+  margin-bottom: 1.75rem;
 }
+
+.logo-icon {
+  font-size: 3.2rem;
+  margin-bottom: 0.5rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.brand-name {
+  font-size: 1.6rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.brand-desc { color: #64748b; font-size: 0.88rem; margin-top: 0.25rem; }
 
 .login-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
-  padding: 3rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: white;
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.04),
+    0 10px 40px rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-.login-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #fff;
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
   text-align: center;
-  margin-bottom: 2rem;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  margin-bottom: 0.35rem;
 }
 
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.card-subtitle {
+  color: #9ca3af;
+  font-size: 0.88rem;
+  text-align: center;
+  margin-bottom: 1.75rem;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+.login-form { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.form-group { display: flex; flex-direction: column; gap: 0.45rem; }
 
 .form-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-}
-
-.label-icon {
-  font-size: 1.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
 }
 
 .form-input {
-  padding: 1rem 1.25rem;
-  font-size: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  color: #fff;
+  padding: 0.85rem 1.15rem;
+  font-size: 0.92rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #1e293b;
   outline: none;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
 }
+.form-input:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); background: white; }
 
-.form-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.form-input:focus {
-  border-color: #d4af37;
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
-}
-
-.error-msg {
-  color: #ff6b6b;
-  font-size: 0.9rem;
-  text-align: center;
-  margin: -0.5rem 0;
-}
+.error-msg { color: #ef4444; font-size: 0.85rem; text-align: center; margin: -0.25rem 0; }
 
 .submit-btn {
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #0a3d5f;
-  background: linear-gradient(135deg, #d4af37, #f4d03f);
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 1rem;
-}
-
-.submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(212, 175, 55, 0.5);
-}
-
-.submit-btn:active {
-  transform: translateY(0);
-}
-
-.switch-text {
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.95rem;
-  margin-top: 0.5rem;
-}
-
-.switch-btn {
-  background: none;
-  border: none;
-  color: #d4af37;
+  width: 100%;
+  padding: 0.85rem;
   font-size: 0.95rem;
   font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
 }
+.submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45); }
+.submit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .login-page {
-    padding: 1.5rem 1rem;
-  }
-
-  .login-card {
-    padding: 2rem 1.5rem;
-  }
-
-  .login-title {
-    font-size: 2rem;
-  }
-}
+.switch-text { text-align: center; margin-top: 1.25rem; color: #64748b; font-size: 0.87rem; }
+.link-btn { color: #6366f1; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: underline; text-decoration-style: none; }
+.link-btn:hover { color: #4f46e5; }
 
 @media (max-width: 480px) {
-  .login-title {
-    font-size: 1.6rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .form-input {
-    padding: 0.85rem 1rem;
-  }
-
-  .submit-btn {
-    padding: 0.9rem 1.5rem;
-    font-size: 1rem;
-  }
+  .login-page { padding: 1.5rem 1rem; }
+  .login-card { padding: 2rem 1.5rem; border-radius: 20px; }
 }
 </style>

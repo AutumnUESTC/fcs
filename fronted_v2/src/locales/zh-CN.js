@@ -45,7 +45,7 @@ export default {
   },
   // 页脚
   footer: {
-    text: '© 2025 智法精灵 | 合作律所：XX律师事务所 | 客服热线：400-XXX-XXXX'
+    text: '© 2025 法脉智联 | 合作律所：XX律师事务所 | 客服热线：400-XXX-XXXX'
   },
   // 首页
   home: {

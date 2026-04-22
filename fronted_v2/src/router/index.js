@@ -67,14 +67,12 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   // 需要登录的路由
   const requireAuth = to.path.startsWith('/chat')
-  
+
   if (requireAuth && !isLoggedIn()) {
     // 未登录，重定向到登录页
     next({ path: '/login' })
-  } else if ((to.path === '/login' || to.path === '/register') && isLoggedIn()) {
-    // 已登录访问登录/注册页，重定向到聊天页
-    next({ path: '/chat' })
   } else {
+    // 其他情况都允许访问（包括已登录用户访问登录/注册页）
     next()
   }
 })

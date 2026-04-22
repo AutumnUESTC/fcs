@@ -1,0 +1,132 @@
+2026-04-22 05:45:18,116 [fcs.server] 正在初始化数据库...
+2026-04-22 05:45:18,153 [fcs.server] 数据库初始化完成
+2026-04-22 05:45:18,153 [fcs.server] 法律多智能体系统服务启动
+2026-04-22 05:45:30,216 [fcs.server] 用户登录: newtest
+2026-04-22 05:45:30,231 [agents.main_graph] [orchestrator] 开始意图分析
+2026-04-22 05:45:32,178 [agents.planner] [planner:orchestrator] LLM 迭代 1/5
+2026-04-22 05:45:32,178 [agents.planner] [planner:orchestrator] LLM 请求(迭代1), 消息数=2
+2026-04-22 05:45:32,179 [agents.planner] [planner:orchestrator] LLM消息[0] role=system: 你是法律意图分析规划师。你的任务是：
+1. 分析用户的情绪状态，了解用户的心理状态
+2. 如果用户上传了文件，先读取文件内容
+3. 分析用户的法律诉求，判断意图类型
+4. 查询相关法律知识，了解该类案件需要的关键信息
+5. 分析用户已提供的信息是否完整
+6. 信息完整后，将诉求拆解为可执行的子任务列表
+可用工具：analyze_emotion, classify_intent, decompose_tasks, use_file_reader, use_legal_query, analyze_info_completeness
+请依次调用工具完成分析。第一步务必调用 analyze_emotion 分析用户情绪。
+
+## 追问规则（非常重要）
+在调用 analyze_info_completeness 之后，必须判断信息是否完整。
+以下情况必须使用 need_info 动作向用户追问：
+- 用户只说了模糊诉求（如'我需要法律援助'、'我要打官司'、'我被骗了'），没有说明具体事实
+- 缺少关键事实：事件经过、涉及金额、对方身份、时间节点等
+- 缺少具体诉求：想要赔偿、想要起诉、想要调
+2026-04-22 05:45:32,179 [agents.planner] [planner:orchestrator] LLM消息[1] role=human: 用户输入：你好，想咨询劳动法
+2026-04-22 05:45:37,802 [httpx] HTTP Request: POST https://api.hunyuan.cloud.tencent.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-22 05:45:37,806 [agents.planner] [planner:orchestrator] LLM 响应(迭代1): 您好，请问您想咨询哪方面的劳动法问题呢？例如，是关于劳动合同、工资支付、工时安排还是其他方面的问题？
+2026-04-22 05:45:37,807 [agents.planner] [planner:orchestrator] LLM 迭代 2/5
+2026-04-22 05:45:37,807 [agents.planner] [planner:orchestrator] LLM 请求(迭代2), 消息数=4
+2026-04-22 05:45:37,808 [agents.planner] [planner:orchestrator] LLM消息[0] role=system: 你是法律意图分析规划师。你的任务是：
+1. 分析用户的情绪状态，了解用户的心理状态
+2. 如果用户上传了文件，先读取文件内容
+3. 分析用户的法律诉求，判断意图类型
+4. 查询相关法律知识，了解该类案件需要的关键信息
+5. 分析用户已提供的信息是否完整
+6. 信息完整后，将诉求拆解为可执行的子任务列表
+可用工具：analyze_emotion, classify_intent, decompose_tasks, use_file_reader, use_legal_query, analyze_info_completeness
+请依次调用工具完成分析。第一步务必调用 analyze_emotion 分析用户情绪。
+
+## 追问规则（非常重要）
+在调用 analyze_info_completeness 之后，必须判断信息是否完整。
+以下情况必须使用 need_info 动作向用户追问：
+- 用户只说了模糊诉求（如'我需要法律援助'、'我要打官司'、'我被骗了'），没有说明具体事实
+- 缺少关键事实：事件经过、涉及金额、对方身份、时间节点等
+- 缺少具体诉求：想要赔偿、想要起诉、想要调
+2026-04-22 05:45:37,808 [agents.planner] [planner:orchestrator] LLM消息[1] role=human: 用户输入：你好，想咨询劳动法
+2026-04-22 05:45:37,808 [agents.planner] [planner:orchestrator] LLM消息[2] role=ai: 您好，请问您想咨询哪方面的劳动法问题呢？例如，是关于劳动合同、工资支付、工时安排还是其他方面的问题？
+2026-04-22 05:45:37,808 [agents.planner] [planner:orchestrator] LLM消息[3] role=human: 请明确输出你的决策，格式为：
+ACTION: call_tool / node_done / rollback / need_info
+（如果是 call_tool，请指定 TOOL_NAME 和 TOOL_ARGS）
+2026-04-22 05:45:40,283 [httpx] HTTP Request: POST https://api.hunyuan.cloud.tencent.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-22 05:45:40,596 [agents.planner] [planner:orchestrator] LLM 响应(迭代2): 我们将调用classify_intent工具来对用户的输入进行分析。
+	
+	用户已经提供了他们想要咨询的法律领域，即劳动法。现在我们需要使用工具来对用户的法律诉求进行意图分类，以便提供更具体的帮助。
+2026-04-22 05:45:40,596 [agents.planner] [planner:orchestrator] 调用工具: classify_intent({"user_input": "请明确输出你的决策，格式为：ACTION: call_tool / node_done / rollback / need_info"}...)
+2026-04-22 05:45:40,596 [agents.planner] [planner] 开始调用工具 classify_intent, 参数: {"user_input": "请明确输出你的决策，格式为：ACTION: call_tool / node_done / rollback / need_info"}
+2026-04-22 05:45:40,597 [agents.planner] [planner] 工具 classify_intent 调用成功, 结果长度: 109
+2026-04-22 05:45:40,597 [agents.planner] [planner:orchestrator] 工具 classify_intent 结果: {"intent": "legal_consultation", "domain": "general", "confidence": 0.5, "reasoning": "未识别到明确的法律意图，作为通用咨询处理"}
+2026-04-22 05:45:40,597 [agents.planner] [planner:orchestrator] LLM 迭代 3/5
+2026-04-22 05:45:40,597 [agents.planner] [planner:orchestrator] LLM 请求(迭代3), 消息数=6
+2026-04-22 05:45:40,597 [agents.planner] [planner:orchestrator] LLM消息[0] role=system: 你是法律意图分析规划师。你的任务是：
+1. 分析用户的情绪状态，了解用户的心理状态
+2. 如果用户上传了文件，先读取文件内容
+3. 分析用户的法律诉求，判断意图类型
+4. 查询相关法律知识，了解该类案件需要的关键信息
+5. 分析用户已提供的信息是否完整
+6. 信息完整后，将诉求拆解为可执行的子任务列表
+可用工具：analyze_emotion, classify_intent, decompose_tasks, use_file_reader, use_legal_query, analyze_info_completeness
+请依次调用工具完成分析。第一步务必调用 analyze_emotion 分析用户情绪。
+
+## 追问规则（非常重要）
+在调用 analyze_info_completeness 之后，必须判断信息是否完整。
+以下情况必须使用 need_info 动作向用户追问：
+- 用户只说了模糊诉求（如'我需要法律援助'、'我要打官司'、'我被骗了'），没有说明具体事实
+- 缺少关键事实：事件经过、涉及金额、对方身份、时间节点等
+- 缺少具体诉求：想要赔偿、想要起诉、想要调
+2026-04-22 05:45:40,598 [agents.planner] [planner:orchestrator] LLM消息[1] role=human: 用户输入：你好，想咨询劳动法
+2026-04-22 05:45:40,598 [agents.planner] [planner:orchestrator] LLM消息[2] role=ai: 您好，请问您想咨询哪方面的劳动法问题呢？例如，是关于劳动合同、工资支付、工时安排还是其他方面的问题？
+2026-04-22 05:45:40,598 [agents.planner] [planner:orchestrator] LLM消息[3] role=human: 请明确输出你的决策，格式为：
+ACTION: call_tool / node_done / rollback / need_info
+（如果是 call_tool，请指定 TOOL_NAME 和 TOOL_ARGS）
+2026-04-22 05:45:40,598 [agents.planner] [planner:orchestrator] LLM消息[4] role=ai: 我们将调用classify_intent工具来对用户的输入进行分析。
+	
+	用户已经提供了他们想要咨询的法律领域，即劳动法。现在我们需要使用工具来对用户的法律诉求进行意图分类，以便提供更具体的帮助。
+2026-04-22 05:45:40,598 [agents.planner] [planner:orchestrator] LLM消息[5] role=tool: {"intent": "legal_consultation", "domain": "general", "confidence": 0.5, "reasoning": "未识别到明确的法律意图，作为通用咨询处理"}
+2026-04-22 05:45:43,742 [httpx] HTTP Request: POST https://api.hunyuan.cloud.tencent.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-22 05:45:43,989 [agents.planner] [planner:orchestrator] LLM 响应(迭代3): 根据您的输入，我们将其归类为**通用法律咨询**。由于没有具体的法律问题，我们无法提供详细的解答。如果您有任何具体的法律问题或疑问，请随时告诉我们，我们将尽力为您提供帮助。
+2026-04-22 05:45:43,990 [agents.planner] [planner:orchestrator] LLM 迭代 4/5
+2026-04-22 05:45:43,990 [agents.planner] [planner] 消息压缩: 8 条 → 保留最近4条，旧工具消息截断为200字
+2026-04-22 05:45:43,990 [agents.planner] [planner:orchestrator] LLM 请求(迭代4), 消息数=8
+2026-04-22 05:45:43,991 [agents.planner] [planner:orchestrator] LLM消息[0] role=system: 你是法律意图分析规划师。你的任务是：
+1. 分析用户的情绪状态，了解用户的心理状态
+2. 如果用户上传了文件，先读取文件内容
+3. 分析用户的法律诉求，判断意图类型
+4. 查询相关法律知识，了解该类案件需要的关键信息
+5. 分析用户已提供的信息是否完整
+6. 信息完整后，将诉求拆解为可执行的子任务列表
+可用工具：analyze_emotion, classify_intent, decompose_tasks, use_file_reader, use_legal_query, analyze_info_completeness
+请依次调用工具完成分析。第一步务必调用 analyze_emotion 分析用户情绪。
+
+## 追问规则（非常重要）
+在调用 analyze_info_completeness 之后，必须判断信息是否完整。
+以下情况必须使用 need_info 动作向用户追问：
+- 用户只说了模糊诉求（如'我需要法律援助'、'我要打官司'、'我被骗了'），没有说明具体事实
+- 缺少关键事实：事件经过、涉及金额、对方身份、时间节点等
+- 缺少具体诉求：想要赔偿、想要起诉、想要调
+2026-04-22 05:45:43,991 [agents.planner] [planner:orchestrator] LLM消息[1] role=human: 用户输入：你好，想咨询劳动法
+2026-04-22 05:45:43,991 [agents.planner] [planner:orchestrator] LLM消息[2] role=ai: 您好，请问您想咨询哪方面的劳动法问题呢？例如，是关于劳动合同、工资支付、工时安排还是其他方面的问题？
+2026-04-22 05:45:43,991 [agents.planner] [planner:orchestrator] LLM消息[3] role=human: 请明确输出你的决策，格式为：
+ACTION: call_tool / node_done / rollback / need_info
+（如果是 call_tool，请指定 TOOL_NAME 和 TOOL_ARGS）
+2026-04-22 05:45:43,991 [agents.planner] [planner:orchestrator] LLM消息[4] role=ai: 我们将调用classify_intent工具来对用户的输入进行分析。
+	
+	用户已经提供了他们想要咨询的法律领域，即劳动法。现在我们需要使用工具来对用户的法律诉求进行意图分类，以便提供更具体的帮助。
+2026-04-22 05:45:43,992 [agents.planner] [planner:orchestrator] LLM消息[5] role=tool: {"intent": "legal_consultation", "domain": "general", "confidence": 0.5, "reasoning": "未识别到明确的法律意图，作为通用咨询处理"}
+2026-04-22 05:45:43,992 [agents.planner] [planner:orchestrator] LLM消息[6] role=ai: 根据您的输入，我们将其归类为**通用法律咨询**。由于没有具体的法律问题，我们无法提供详细的解答。如果您有任何具体的法律问题或疑问，请随时告诉我们，我们将尽力为您提供帮助。
+2026-04-22 05:45:43,992 [agents.planner] [planner:orchestrator] LLM消息[7] role=human: 请明确输出你的决策，格式为：
+ACTION: call_tool / node_done / rollback / need_info
+（如果是 call_tool，请指定 TOOL_NAME 和 TOOL_ARGS）
+2026-04-22 05:45:51,008 [httpx] HTTP Request: POST https://api.hunyuan.cloud.tencent.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-22 05:45:51,255 [agents.planner] [planner:orchestrator] LLM 响应(迭代4): ACTION: need_info
+PENDING_QUESTION: 您想咨询劳动法哪方面的问题，比如劳动合同、工资支付、工时安排等
+MISSING_INFO: 具体法律诉求、相关事件经过、涉及金额、对方身份、时间节点等
+THOUGHT: 用户仅表达了想咨询劳动法，属于模糊诉求，未说明具体事实，根据追问规则，需要向用户追问具体想咨询的劳动法方面以及补充具体事实、诉求等关键信息。接下来我将调用 analyze_emotion 工具分析用户情绪。
+2026-04-22 05:45:51,256 [agents.planner] [planner:orchestrator] LLM 决策: need_info
+2026-04-22 05:45:51,256 [agents.node_subgraph] [planner_node:orchestrator] 决策: need_info
+2026-04-22 05:45:51,257 [agents.main_graph] [orchestrator] 完成: 意图=unknown, 信息完整=False
+2026-04-22 05:45:51,257 [agents.main_graph] [route_after_orchestrator] 路由到 END（需要追问用户）
+2026-04-22 05:55:46,728 [fcs.server] 新用户注册: testuser
+2026-04-22 05:55:46,866 [fcs.server] 用户登录: testuser
+2026-04-22 05:56:13,419 [fcs.server] 用户登录: testuser
+2026-04-22 05:56:23,350 [fcs.server] 用户登录: testuser
+2026-04-22 06:07:56,042 [fcs.server] 法律多智能体系统服务关闭

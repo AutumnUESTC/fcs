@@ -40,20 +40,28 @@ Base = declarative_base()
 # ==============================================================================
 
 class User(Base):
-    """用户表"""
+    """用户表 - 与现有数据库表结构匹配"""
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(50), unique=True, nullable=False, index=True)
-    password_hash = Column(String(255), nullable=False)
-    nickname = Column(String(100), default="")
+    password = Column(String(255), nullable=False)
     email = Column(String(100), default="")
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
-    is_active = Column(Boolean, default=True)
 
-    # 关系
-    conversations = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
+    # 向后兼容别名（非数据库字段）
+    @property
+    def nickname(self):
+        return self.username
+
+    @property
+    def is_active(self):
+        return True
+
+    @property
+    def password_hash(self):
+        return self.password
 
 
 class Conversation(Base):
@@ -68,23 +76,18 @@ class Conversation(Base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
-    # 关系
-    user = relationship("User", back_populates="conversations")
-    messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
-
 
 class Message(Base):
-    """消息表"""
+    """消息表 - 与现有数据库表结构匹配"""
     __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False)
+    session_id = Column(String(64), nullable=False, index=True)  # 与实际表一致
     role = Column(String(20), nullable=False)  # user / assistant
-    content = Column(Text, nullable=False)
+    content = Column(Text)
+    emotion = Column(String(50))
+    intent = Column(String(50))
     created_at = Column(DateTime, default=datetime.now)
-
-    # 关系
-    conversation = relationship("Conversation", back_populates="messages")
 
 
 class LegalAnalysis(Base):

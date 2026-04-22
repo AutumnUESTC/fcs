@@ -89,6 +89,7 @@ from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status, H
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from agents.main_graph import main_graph
 from agents.states import GlobalCaseState
@@ -266,8 +267,7 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     # 创建用户
     user = User(
         username=request.username,
-        password_hash=hash_password(request.password),
-        nickname=request.nickname or request.username
+        password=hash_password(request.password)
     )
     db.add(user)
     db.commit()
@@ -280,8 +280,7 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
         message="注册成功",
         data={
             "id": user.id,
-            "username": user.username,
-            "nickname": user.nickname
+            "username": user.username
         }
     )
 
@@ -291,7 +290,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     """用户登录"""
     user = db.query(User).filter(User.username == request.username).first()
     
-    if not user or not verify_password(request.password, user.password_hash):
+    if not user or not verify_password(request.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="用户名或密码错误"
@@ -386,9 +385,9 @@ async def get_conversation_detail(
             detail="会话不存在"
         )
     
-    # 获取消息
+    # 获取消息（使用 session_id 查询）
     messages = db.query(Message).filter(
-        Message.conversation_id == conversation.id
+        Message.session_id == conversation.conversation_id
     ).order_by(Message.created_at.asc()).all()
     
     return ApiResponse(
@@ -491,6 +490,13 @@ async def send_message(
     ).first()
     
     if not conversation:
+        # 同时在 sessions 表中创建记录（满足 messages 表的外键约束）
+        db.execute(text("""
+            INSERT INTO sessions (id, user_id, title, service_type) 
+            VALUES (:conv_id, :user_id, '新对话', 'qa')
+            ON DUPLICATE KEY UPDATE title='新对话'
+        """), {"conv_id": request.conversation_id, "user_id": current_user.id})
+        
         conversation = Conversation(
             conversation_id=request.conversation_id,
             user_id=current_user.id,
@@ -503,7 +509,7 @@ async def send_message(
     
     # 保存用户消息
     user_message = Message(
-        conversation_id=conversation.id,
+        session_id=request.conversation_id,  # 使用前端传来的conversation_id作为session_id
         role="user",
         content=request.content
     )
@@ -544,7 +550,7 @@ async def send_message(
         
         # 保存助手回复
         assistant_message = Message(
-            conversation_id=conversation.id,
+            session_id=request.conversation_id,
             role="assistant",
             content=assistant_content
         )
@@ -734,8 +740,8 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "app:app",
-        host="0.0.0.0",
-        port=8000,
+        host="127.0.0.1",
+        port=5000,
         reload=True,
         log_level="info",
     )

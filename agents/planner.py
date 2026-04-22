@@ -659,6 +659,45 @@ class Planner:
         for k, v in fallback_output.items():
             v_str = str(v)[:200] if v else "(空)"
             logger.info(f"[planner:{node_name}]   {k}: {v_str}")
+        
+        # 检查是否有追问信息（如果 info_complete=False 且有 pending_question）
+        # 这说明 LLM 已经判断需要追问用户，应该返回 need_info 而不是 node_done
+        pending_question = None
+        missing_info = []
+        info_complete_flag = False
+        
+        logger.info(f"[planner:{node_name}] 检查工具结果是否有追问信息, llm_tool_results 数量: {len(llm_tool_results)}")
+        
+        if node_name == "orchestrator":
+            for i, tr in enumerate(llm_tool_results):
+                result = tr.get("result", "")
+                logger.info(f"[planner:{node_name}] 工具结果[{i}] {tr.get('tool_name')}: {result[:100] if result else '空'}...")
+                # 检查是否包含 info_complete 分析结果
+                if isinstance(result, str) and "pending_question" in result and "info_complete" in result:
+                    # 尝试从工具结果中提取追问信息
+                    try:
+                        data = json.loads(result)
+                        logger.info(f"[planner:{node_name}] 找到 analyze_info_completeness 结果: info_complete={data.get('info_complete')}")
+                        if data.get("info_complete") is False and data.get("pending_question"):
+                            pending_question = data["pending_question"]
+                            missing_info = data.get("missing_info", [])
+                            info_complete_flag = False
+                            logger.info(f"[planner:{node_name}] 设置 pending_question: {pending_question[:50]}...")
+                            break
+                    except Exception as e:
+                        logger.error(f"[planner:{node_name}] 解析工具结果失败: {e}")
+        
+        logger.info(f"[planner:{node_name}] 最终: pending_question={'有' if pending_question else '无'}, info_complete_flag={info_complete_flag}")
+        
+        if pending_question and info_complete_flag is False:
+            logger.info(f"[planner:{node_name}] 达到迭代限制但需要追问，返回 need_info")
+            return PlannerDecision(
+                action="need_info",
+                pending_question=pending_question,
+                missing_info=missing_info,
+                thought="达到最大迭代次数，但已有追问信息需要用户补充",
+            )
+        
         return PlannerDecision(
             action="node_done",
             node_output=fallback_output,

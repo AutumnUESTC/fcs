@@ -43,7 +43,7 @@ def classify_intent(user_input: str) -> str:
 
 
 @tool
-def decompose_tasks(intent_info: str, user_input: str) -> str:
+def decompose_tasks(intent_info: str = "{}", user_input: str = "") -> str:
     """根据意图分析结果，将用户诉求拆解为可执行的子任务列表。
 
     Args:
@@ -53,7 +53,15 @@ def decompose_tasks(intent_info: str, user_input: str) -> str:
     Returns:
         任务列表 JSON 字符串
     """
-    intent_data = json.loads(intent_info) if isinstance(intent_info, str) else intent_info
+    # 处理空或无效的 intent_info
+    if not intent_info or intent_info.strip() == "":
+        intent_info = "{}"
+    
+    try:
+        intent_data = json.loads(intent_info) if isinstance(intent_info, str) else intent_info
+    except (json.JSONDecodeError, TypeError, ValueError):
+        # 如果 JSON 解析失败，尝试提取 intent 部分
+        intent_data = {"intent": "legal_consultation", "confidence": 0.5}
     intent = intent_data.get("intent", "legal_consultation")
 
     tasks: list[dict[str, Any]] = []

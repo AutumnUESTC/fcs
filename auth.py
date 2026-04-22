@@ -41,33 +41,41 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return secrets.compare_digest(pwd_hash, stored_hash)
 
 
+# 向后兼容别名
+password_hash = property(lambda self: self.password)
+
+
 def create_access_token(user_id: int, username: str) -> str:
-    """创建访问令牌（简单实现）"""
+    """创建访问令牌（使用 | 分隔符避免与时间戳冒号冲突）"""
     expire = datetime.utcnow() + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
-    payload = f"{user_id}:{username}:{expire.isoformat()}"
+    payload = f"{user_id}|{username}|{expire.isoformat()}"
     signature = hashlib.sha256(f"{SECRET_KEY}{payload}".encode()).hexdigest()
-    return f"{payload}:{signature}"
+    return f"{payload}|{signature}"
 
 
 def verify_access_token(token: str) -> Optional[dict]:
     """验证访问令牌"""
     try:
-        parts = token.split(":")
+        # Token格式: user_id|username|iso_timestamp|signature
+        parts = token.split('|')
         if len(parts) != 4:
             return None
         
-        user_id, username, expire_str, signature = parts
-        payload = f"{user_id}:{username}:{expire_str}"
+        user_id_str, username, expire_str, signature = parts
+        
+        # 验证签名
+        payload = f"{user_id_str}|{username}|{expire_str}"
         expected_sig = hashlib.sha256(f"{SECRET_KEY}{payload}".encode()).hexdigest()
         
         if not secrets.compare_digest(signature, expected_sig):
             return None
         
+        # 检查过期
         expire = datetime.fromisoformat(expire_str)
         if expire < datetime.utcnow():
             return None
         
-        return {"user_id": int(user_id), "username": username}
+        return {"user_id": int(user_id_str), "username": username}
     except Exception:
         return None
 

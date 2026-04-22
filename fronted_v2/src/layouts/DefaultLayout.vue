@@ -3,18 +3,22 @@
     <!-- 顶部导航栏 -->
     <header class="header">
       <div class="header-content">
-        <div class="logo" @click="navigateToHome">
+        <div class="logo" @click="navigateTo('/')">
           <span class="logo-icon">⚖️</span>
-          <span class="logo-text">智法精灵</span>
+          <span class="logo-text">法脉智联</span>
         </div>
-        <nav class="nav-menu">
+
+        <nav class="nav-menu" v-if="showNav">
           <router-link to="/" class="nav-link" exact-active-class="active">首页</router-link>
-          <router-link to="/services" class="nav-link" exact-active-class="active">服务</router-link>
-          <router-link to="/about" class="nav-link" exact-active-class="active">关于</router-link>
+          <router-link to="/services" class="nav-link">服务</router-link>
+          <router-link to="/about" class="nav-link">关于</router-link>
         </nav>
+
         <div class="auth-buttons">
-          <button class="btn btn-login" @click="handleLogin">登录</button>
+          <button class="btn btn-login" @click="navigateTo('/login')">登录</button>
         </div>
+
+        <button class="mobile-menu-btn" @click="showNav = !showNav" v-if="!showNav">☰</button>
       </div>
     </header>
 
@@ -22,27 +26,18 @@
     <main class="main-container">
       <router-view />
     </main>
-
-    <!-- 底部 -->
-    <footer class="footer">
-      <p class="footer-text">{{ $t('footer.text') }}</p>
-    </footer>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const showNav = ref(true)
 
-// 点击Logo跳转到首页
-const navigateToHome = () => {
-  router.push('/')
-}
-
-// 登录
-const handleLogin = () => {
-  router.push('/login')
+const navigateTo = (path) => {
+  router.push(path)
 }
 </script>
 
@@ -51,54 +46,23 @@ const handleLogin = () => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #0a3d5f 0%, #1a5a7a 50%, #0a3d5f 100%);
-  position: relative;
+  background: linear-gradient(135deg, #f5f7fa 0%, #eef0ff 50%, #faf5ff 100%);
 }
 
-/* 背景遮罩效果 */
-.default-layout::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 0;
-}
-
-/* 抽象背景图案 */
-.default-layout::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.03) 0%, transparent 30%);
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* 顶部导航栏 */
 .header {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: rgba(10, 61, 95, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
 .header-content {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem 2rem;
+  padding: 0.9rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -107,192 +71,55 @@ const handleLogin = () => {
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: transform 0.25s ease;
 }
 
-.logo:hover {
-  transform: scale(1.05);
-}
+.logo:hover { transform: scale(1.03); }
 
-.logo-icon {
-  font-size: 2rem;
-  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
-}
+.logo-icon { font-size: 1.7rem; }
 
 .logo-text {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #d4af37, #f4d03f);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 /* 导航菜单 */
-.nav-menu {
-  display: flex;
-  gap: 2rem;
-  align-items: center;
-}
-
+.nav-menu { display: flex; gap: 0.25rem; align-items: center; }
 .nav-link {
-  color: rgba(255, 255, 255, 0.8);
+  color: #4b5563;
   text-decoration: none;
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 500;
-  transition: all 0.3s ease;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  position: relative;
+  transition: all 0.25s ease;
+  padding: 0.55rem 1.05rem;
+  border-radius: 10px;
 }
 
-.nav-link:hover {
-  color: #d4af37;
-  background: rgba(212, 175, 55, 0.1);
-}
+.nav-link:hover { color: #6366f1; background: rgba(99, 102, 241, 0.08); }
+.nav-link.active { color: white; background: linear-gradient(135deg, #667eea, #764ba2); }
 
-.nav-link.active {
-  color: #d4af37;
-  background: rgba(212, 175, 55, 0.2);
-}
+.auth-buttons { display: flex; gap: 0.75rem; }
+.btn { padding: 0.55rem 1.35rem; border-radius: 10px; font-size: .88rem; font-weight:600; cursor: pointer; transition: all .25s ease; border: 1.5px solid transparent; }
+.btn-login { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-color: transparent; }
+.btn-login:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); }
+.mobile-menu-btn { display: none; background:none; border:none; font-size:1.4rem; color:#374151; cursor:pointer; padding:.3rem; }
 
-.nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 2px;
-  background: linear-gradient(90deg, #d4af37, #f4d03f);
-  border-radius: 2px;
-}
-
-.auth-buttons {
-  display: flex;
-  gap: 1rem;
-}
-
-.btn {
-  padding: 0.6rem 1.5rem;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
-
-.btn-login {
-  background: rgba(212, 175, 55, 0.2);
-  color: #d4af37;
-  border-color: #d4af37;
-}
-
-.btn-login:hover {
-  background: rgba(212, 175, 55, 0.3);
-  transform: scale(1.05);
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-}
-
-.btn-register {
-  background: linear-gradient(135deg, #d4af37, #f4d03f);
-  color: #0a3d5f;
-}
-
-.btn-register:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.5);
-}
-
-/* 主内容容器 */
-.main-container {
-  position: relative;
-  z-index: 10;
-  flex: 1;
-  margin-top: 80px;
-}
-
-/* 底部 */
-.footer {
-  position: relative;
-  z-index: 10;
-  text-align: center;
-  padding: 2rem;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.footer-text {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-}
-
-/* 响应式设计 */
-@media (max-width: 1024px) {
-  .nav-menu {
-    gap: 1.5rem;
-  }
-
-  .nav-link {
-    font-size: 0.95rem;
-  }
-}
+.main-container { flex: 1; margin-top: 70px; position: relative; z-index: 10; }
 
 @media (max-width: 768px) {
-  .header-content {
-    padding: 0.75rem 1rem;
-  }
-
-  .logo-text {
-    font-size: 1.2rem;
-  }
-
-  .logo-icon {
-    font-size: 1.6rem;
-  }
-
-  .nav-menu {
-    display: none;
-  }
-
-  .auth-buttons {
-    gap: 0.5rem;
-  }
-
-  .btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-  }
-
-  .main-container {
-    margin-top: 70px;
-  }
-
-  .footer-text {
-    font-size: 0.8rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .header-content {
-    padding: 0.6rem 0.75rem;
-  }
-
-  .logo-text {
-    font-size: 1rem;
-  }
-
-  .logo-icon {
-    font-size: 1.4rem;
-  }
-
-  .btn {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-  }
+  .header-content { padding: .75rem 1rem; }
+  .logo-text { font-size: 1.15rem; }
+  .logo-icon { font-size: 1.45rem; }
+  .nav-menu { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border-radius: 0 12px 12px; padding: .5rem; box-shadow: 0 8px 30px rgba(0,0,0,.12); border: 1px solid rgba(0,0,0,.06); z-index: 1001; flex-direction: column; }
+  .nav-link { padding:.65rem 1rem; text-align:center; }
+  .mobile-menu-btn { display: block; position:absolute; right:1rem; top: .85rem; }
+  .auth-buttons { gap: .5rem; }
+  .btn { padding: .45rem 1rem; font-size: .82rem; }
 }
 </style>

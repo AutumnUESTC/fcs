@@ -5,7 +5,7 @@
       <div class="header-content">
         <div class="logo">
           <span class="logo-icon">⚖️</span>
-          <span class="logo-text">智法精灵</span>
+          <span class="logo-text">法脉智联</span>
         </div>
         <div class="auth-buttons">
           <button class="btn btn-login" @click="handleLogin">登录</button>
@@ -95,7 +95,7 @@
 
     <!-- 底部 -->
     <footer class="footer">
-      <p class="footer-text">© 2025 智法精灵 | 合作律所：XX律师事务所 | 客服热线：400-XXX-XXXX</p>
+      <p class="footer-text">© 2025 法脉智联 | 合作律所：XX律师事务所 | 客服热线：400-XXX-XXXX</p>
     </footer>
   </div>
 </template>
