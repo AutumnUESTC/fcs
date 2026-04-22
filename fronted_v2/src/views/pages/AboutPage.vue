@@ -42,7 +42,7 @@
           <div class="stat-number">xx万</div>
           <div class="stat-label">服务用户</div>
         </div>
-        <div class="stat-item">xx
+        <div class="stat-item">
           <div class="stat-number">24/7</div>
           <div class="stat-label">在线支持</div>
         </div>
